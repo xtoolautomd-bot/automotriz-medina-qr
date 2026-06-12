@@ -1,0 +1,4382 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1358d8">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Automotriz Medina SV">
+  <meta name="application-name" content="Automotriz Medina SV">
+  <title>Taller QR | Historial de Vehículos</title>
+  <style>
+    :root {
+      --blue: #1358d8;
+      --blue-2: #0b3f9f;
+      --red: #d82034;
+      --gray-900: #172033;
+      --gray-700: #526070;
+      --gray-500: #8a96a6;
+      --gray-200: #dbe2ea;
+      --gray-100: #eef3f8;
+      --white: #ffffff;
+      --panel: rgba(255, 255, 255, .94);
+      --shadow: 0 18px 45px rgba(23, 32, 51, .10);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--gray-900);
+      background: var(--gray-100);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(19, 88, 216, .08), transparent 38%),
+        linear-gradient(315deg, rgba(216, 32, 52, .06), transparent 34%),
+        #f4f7fb;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      min-height: 42px;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      color: var(--gray-900);
+      background: var(--white);
+      cursor: pointer;
+    }
+
+    button:hover { border-color: #aeb9c7; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+
+    input, select, textarea {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 11px 12px;
+      color: var(--gray-900);
+      background: var(--white);
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(19, 88, 216, .14);
+    }
+
+    input.invalid, select.invalid, textarea.invalid {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(216, 32, 52, .12);
+    }
+
+    .field-msg {
+      margin: 6px 0 0;
+      color: var(--gray-500);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .field-msg.error {
+      color: var(--red);
+      font-weight: 800;
+    }
+
+    textarea {
+      min-height: 112px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    label {
+      display: block;
+      margin: 0 0 7px;
+      color: var(--gray-700);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px 18px;
+      border-right: 1px solid var(--gray-200);
+      background: rgba(255, 255, 255, .86);
+      backdrop-filter: blur(16px);
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 26px;
+      padding: 8px 6px;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius);
+      color: var(--white);
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      font-weight: 900;
+      box-shadow: 0 12px 22px rgba(19, 88, 216, .22);
+      overflow: hidden;
+    }
+
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.05;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--gray-700);
+      font-size: 13px;
+    }
+
+    .nav-title {
+      margin: 22px 8px 8px;
+      color: var(--gray-500);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .nav button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      margin: 5px 0;
+      padding: 10px 12px;
+      border-color: transparent;
+      background: transparent;
+      text-align: left;
+      color: var(--gray-700);
+      font-weight: 700;
+    }
+
+    .nav button.active {
+      color: var(--blue);
+      border-color: rgba(19, 88, 216, .20);
+      background: #eaf1ff;
+    }
+
+    .nav .danger { color: var(--red); }
+    .nav-icon { width: 24px; text-align: center; }
+
+    .main {
+      min-width: 0;
+      padding: 26px clamp(14px, 4vw, 42px) 54px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .top-logo {
+      display: none;
+      width: 48px;
+      height: 48px;
+      border: 1px solid var(--gray-200);
+      border-radius: 14px;
+      object-fit: cover;
+      background: var(--white);
+      box-shadow: 0 10px 20px rgba(23, 32, 51, .08);
+    }
+
+    .menu-btn {
+      display: none;
+      width: auto;
+      min-height: 48px;
+      padding: 0 14px;
+      border-color: rgba(19, 88, 216, .18);
+      border-radius: 14px;
+      color: var(--blue);
+      background: #edf4ff;
+      font-size: 15px;
+      font-weight: 900;
+      box-shadow: 0 10px 22px rgba(19, 88, 216, .12);
+    }
+
+    .sidebar-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      background: rgba(23, 32, 51, .32);
+      backdrop-filter: blur(2px);
+      z-index: 14;
+    }
+
+    .sidebar-backdrop.open {
+      display: block;
+    }
+
+    .page-title h2 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1;
+    }
+
+    .page-title p {
+      margin: 8px 0 0;
+      color: var(--gray-700);
+    }
+
+    .dashboard-mode .page-title h2 { display: none; }
+    .dashboard-mode .page-title p {
+      margin-top: 0;
+      font-size: clamp(24px, 5vw, 36px);
+      line-height: 1.08;
+      font-weight: 950;
+      color: var(--gray-900);
+    }
+
+    .dashboard-mode .page-title .subtitle {
+      display: block;
+      margin-top: 5px;
+      color: var(--gray-700);
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 14px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .primary {
+      border-color: var(--blue);
+      color: var(--white);
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      box-shadow: 0 12px 24px rgba(19, 88, 216, .20);
+    }
+
+    .danger-btn {
+      border-color: rgba(216, 32, 52, .28);
+      color: var(--red);
+      background: #fff1f3;
+    }
+
+    .whatsapp-btn {
+      border-color: #16a34a;
+      color: var(--white);
+      background: linear-gradient(135deg, #22c55e, #15803d);
+      box-shadow: 0 12px 24px rgba(22, 163, 74, .22);
+    }
+
+    .soft {
+      color: var(--blue);
+      border-color: rgba(19, 88, 216, .18);
+      background: #edf4ff;
+    }
+
+    .grid { display: grid; gap: 16px; }
+
+    .stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 18px;
+    }
+
+    .card {
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 17px 18px;
+      border-bottom: 1px solid var(--gray-200);
+      background: rgba(255, 255, 255, .72);
+    }
+
+    .card-head h3 {
+      margin: 0;
+      font-size: 19px;
+    }
+
+    .card-body { padding: 18px; }
+
+    .stat { padding: 18px; }
+    .stat span {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--gray-700);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .stat strong {
+      display: block;
+      font-size: 31px;
+      line-height: 1;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 170px;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .vehicle-grid {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+
+    .vehicle-card {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      cursor: pointer;
+      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+    }
+
+    .vehicle-card:hover,
+    .vehicle-card:focus {
+      transform: translateY(-2px);
+      border-color: rgba(19, 88, 216, .32);
+      box-shadow: 0 22px 50px rgba(23, 32, 51, .14);
+      outline: none;
+    }
+
+    .dashboard-actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      max-width: 960px;
+      margin: 28px auto 0;
+    }
+
+    .action-card {
+      position: relative;
+      min-height: 250px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      padding: 34px 26px;
+      text-align: center;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(19, 88, 216, .08), rgba(255, 255, 255, .94)),
+        var(--white);
+      border: 2px solid rgba(19, 88, 216, .18);
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .action-icon {
+      display: grid;
+      place-items: center;
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      color: var(--white);
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      box-shadow: 0 16px 34px rgba(19, 88, 216, .22);
+      font-size: 34px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .action-card:nth-child(2) .action-icon {
+      background: linear-gradient(135deg, var(--red), #a91425);
+      box-shadow: 0 16px 34px rgba(216, 32, 52, .18);
+    }
+
+    .action-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 6px;
+      background: linear-gradient(90deg, var(--blue), var(--red));
+    }
+
+    .action-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(19, 88, 216, .48);
+      background:
+        linear-gradient(135deg, rgba(19, 88, 216, .13), rgba(255, 255, 255, .98)),
+        var(--white);
+      box-shadow: 0 24px 55px rgba(23, 32, 51, .18);
+    }
+
+    .action-card:active {
+      transform: translateY(0) scale(.99);
+    }
+
+    .action-card strong {
+      display: block;
+      max-width: 340px;
+      font-size: clamp(30px, 4vw, 44px);
+      line-height: 1;
+    }
+
+    .action-card .btn {
+      min-width: 210px;
+      pointer-events: none;
+      box-shadow: 0 12px 24px rgba(19, 88, 216, .18);
+    }
+
+    .action-card:not(:has(.btn)) {
+      gap: 26px;
+    }
+
+    .vehicle-photo {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      background: #dce3ec;
+    }
+
+    .vehicle-photo.is-hidden {
+      display: none;
+    }
+
+    .vehicle-content {
+      display: grid;
+      gap: 8px;
+      padding: 15px;
+      flex: 1;
+    }
+
+    .plate-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .plate {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: .04em;
+      line-height: 1;
+    }
+
+    .model {
+      margin: 4px 0 0;
+      color: var(--gray-700);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .badge.ok { color: #087a39; background: #def8e9; }
+    .badge.warn { color: #946100; background: #fff1c8; }
+    .badge.bad { color: #b91528; background: #ffe0e5; }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .meta div {
+      min-height: 66px;
+      padding: 10px;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      background: #fafcff;
+    }
+
+    .meta span {
+      display: block;
+      color: var(--gray-500);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .meta strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 17px;
+    }
+
+    .vehicle-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .vehicle-actions .wide { grid-column: 1 / -1; }
+
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      min-width: 820px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 13px 12px;
+      border-bottom: 1px solid var(--gray-200);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--gray-700);
+      font-size: 12px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .full { grid-column: 1 / -1; }
+
+    .unit-picker {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .unit-picker label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 44px;
+      margin: 0;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      color: var(--gray-700);
+      background: var(--white);
+      text-transform: none;
+      letter-spacing: 0;
+      cursor: pointer;
+    }
+
+    .unit-picker input {
+      width: 16px;
+      min-height: 16px;
+      padding: 0;
+      accent-color: var(--blue);
+    }
+
+    .photo-field {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+    }
+
+    .photo-preview {
+      width: 180px;
+      aspect-ratio: 4 / 3;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      object-fit: cover;
+      background: #dce3ec;
+    }
+
+    .hint {
+      margin: 8px 0 0;
+      color: var(--gray-500);
+      font-size: 13px;
+    }
+
+    .checks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .checks label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      margin: 0;
+      padding: 0 10px;
+      border: 1px solid var(--gray-200);
+      border-radius: 999px;
+      color: var(--gray-700);
+      background: var(--white);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .checks input {
+      width: 16px;
+      min-height: 16px;
+      padding: 0;
+      accent-color: var(--blue);
+    }
+
+    .filter-services {
+      display: grid;
+      gap: 12px;
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: minmax(150px, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--gray-200);
+      border-radius: 14px;
+      background: #f8fbff;
+    }
+
+    .filter-name {
+      color: var(--gray-900);
+      font-weight: 850;
+    }
+
+    .filter-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: flex-end;
+    }
+
+    .filter-options label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 34px;
+      margin: 0;
+      padding: 0 10px;
+      border: 1px solid #cbd8ea;
+      border-radius: 999px;
+      color: var(--gray-700);
+      background: var(--white);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .filter-options input {
+      width: 15px;
+      min-height: 15px;
+      padding: 0;
+      accent-color: var(--blue);
+    }
+
+    .filter-extra {
+      display: none;
+      grid-column: 1 / -1;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding-top: 4px;
+    }
+
+    .filter-row.requires-extra .filter-extra {
+      display: grid;
+    }
+
+    .service-type-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .service-type-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      width: 100%;
+      padding: 15px 16px;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 900;
+      text-align: left;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, .04);
+      cursor: pointer;
+    }
+
+    .service-type-row input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .service-type-title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .service-type-title small {
+      font-size: 12px;
+      color: var(--gray-500);
+      letter-spacing: 0;
+      text-transform: none;
+      font-weight: 700;
+    }
+
+    .service-type-toggle {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 999px;
+      border: 1px solid #bfd3f4;
+      color: var(--blue-700);
+      background: #eff6ff;
+      font-size: 20px;
+      line-height: 1;
+      flex: 0 0 auto;
+      transition: transform .18s ease, background .18s ease, color .18s ease;
+    }
+
+    .service-type-row.active {
+      border-color: #8bb8ff;
+      background: #f4f8ff;
+      box-shadow: 0 12px 24px rgba(19, 88, 216, .10);
+    }
+
+    .service-type-row.active .service-type-toggle {
+      transform: rotate(45deg);
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .maintenance-section {
+      display: none;
+      border: 1px solid var(--gray-200);
+      border-radius: 16px;
+      padding: 14px;
+      background: #f8fbff;
+    }
+
+    .maintenance-section.open {
+      display: block;
+    }
+
+    .maintenance-section h4 {
+      margin: 0 0 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--blue-700);
+    }
+
+    .qr-layout {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .qr-box {
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      background: var(--white);
+    }
+
+    .qr-box img {
+      width: 260px;
+      max-width: 100%;
+      aspect-ratio: 1;
+    }
+
+    .link-box {
+      padding: 12px;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      background: #f8fbff;
+      color: var(--gray-700);
+      overflow-wrap: anywhere;
+      font-size: 14px;
+    }
+
+    .notice {
+      padding: 12px 14px;
+      border: 1px solid rgba(19, 88, 216, .20);
+      border-radius: var(--radius);
+      background: #edf4ff;
+      color: #174172;
+      line-height: 1.45;
+    }
+
+    .notice + .notice {
+      margin-top: 10px;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 140px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+    }
+
+    .media-preview {
+      width: 140px;
+      aspect-ratio: 1;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      object-fit: contain;
+      background: #f8fbff;
+    }
+
+    .ticket-preview {
+      max-width: 280px;
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px dashed #9facbd;
+      border-radius: var(--radius);
+      background: #fff;
+      color: #111;
+      text-align: center;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    .ticket-preview img {
+      width: 170px;
+      height: 170px;
+      margin: 8px auto;
+      display: block;
+    }
+
+    .ticket-preview strong,
+    .ticket-preview span {
+      display: block;
+    }
+
+    .empty-module {
+      min-height: 280px;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      text-align: center;
+    }
+
+    .public-shell {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 20px 12px 50px;
+    }
+
+    .client-mode .public-shell {
+      max-width: 430px;
+      margin: 0 auto;
+      padding: 16px 14px 42px;
+    }
+
+    .public-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .public-header .brand { margin: 0; padding: 0; }
+
+    .client-mode .public-header {
+      display: grid;
+      grid-template-columns: 1fr;
+      align-items: stretch;
+      gap: 12px;
+      padding: 6px 0 14px;
+    }
+
+    body.client-mode .public-header {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      justify-content: flex-start !important;
+      gap: 14px !important;
+      overflow: visible;
+    }
+
+    .client-mode .public-header .brand {
+      width: 100%;
+      min-width: 0;
+    }
+
+    body.client-mode .public-header .brand {
+      flex: 0 0 auto;
+      width: 100%;
+      align-items: center;
+    }
+
+    .public-logo {
+      width: 62px;
+      height: 62px;
+      border-radius: 8px;
+      object-fit: contain;
+      border: 1px solid var(--gray-200);
+      background: var(--white);
+    }
+
+    .client-mode .public-logo {
+      width: 54px;
+      height: 54px;
+      box-shadow: 0 10px 22px rgba(23, 32, 51, .10);
+    }
+
+    .client-mode .brand {
+      min-width: 0;
+    }
+
+    .client-mode .brand h1 {
+      font-size: 19px;
+      line-height: 1.08;
+      letter-spacing: .01em;
+      overflow-wrap: anywhere;
+    }
+
+    .client-mode .brand p {
+      margin-top: 4px;
+      font-size: 13px;
+    }
+
+    .public-hero {
+      display: block;
+    }
+
+    .public-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+      padding: 26px;
+      background: var(--white);
+    }
+
+    .client-mode .public-info {
+      padding: 22px;
+      border-radius: var(--radius);
+      border: 1px solid #d8e2ee;
+      background:
+        linear-gradient(180deg, rgba(19, 88, 216, .045), transparent 36%),
+        var(--white);
+      box-shadow: 0 18px 42px rgba(23, 32, 51, .08);
+    }
+
+    .public-info h2 {
+      margin: 0;
+      font-size: clamp(30px, 8vw, 38px);
+      letter-spacing: .04em;
+      line-height: 1.02;
+    }
+
+    .public-info p {
+      margin: 0;
+      color: var(--gray-700);
+      font-size: 18px;
+    }
+
+    .client-mode .public-info p {
+      font-size: 16px;
+    }
+
+    .client-identity {
+      display: grid;
+      gap: 5px;
+      margin-top: 8px;
+      color: var(--gray-700);
+    }
+
+    .client-identity span {
+      display: block;
+      font-size: 18px;
+      line-height: 1.18;
+    }
+
+    .client-identity strong {
+      color: var(--gray-900);
+      font-weight: 900;
+      letter-spacing: .01em;
+    }
+
+    .client-identity .plate-line strong {
+      font-size: 21px;
+    }
+
+    .client-identity .owner-line {
+      padding-top: 3px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 17px;
+    }
+
+    .client-log-title {
+      margin: 28px 0 6px;
+      color: var(--gray-900);
+      font-size: 24px;
+      font-weight: 950;
+      line-height: 1.08;
+      letter-spacing: .01em;
+    }
+
+    .client-mode .public-info .meta {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .client-mode .public-info .meta div {
+      min-height: 78px;
+      padding: 11px 9px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: #f8fbff;
+    }
+
+    .client-mode .public-info .meta span {
+      font-size: 10px;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    .client-mode .public-info .meta strong {
+      font-size: 16px;
+      line-height: 1.15;
+      text-align: center;
+    }
+
+    .client-mode .notice {
+      border-color: #b7cff7;
+      background: #edf5ff;
+      color: #123f7a;
+      font-weight: 700;
+    }
+
+    .client-next-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .schedule-btn {
+      width: 100%;
+      margin-top: 0;
+      min-height: 52px;
+      border: 0;
+      color: var(--white);
+      background: linear-gradient(135deg, #1faf5f, #0c8844);
+      box-shadow: 0 16px 32px rgba(24, 169, 87, .24);
+      font-size: 15px;
+      font-weight: 900;
+      border-radius: 8px;
+    }
+
+    body.client-mode .schedule-btn {
+      flex: 0 0 auto;
+      width: 100% !important;
+      align-self: stretch;
+      position: relative;
+      z-index: 0;
+    }
+
+    .schedule-btn::before {
+      content: "☎";
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .18);
+      font-size: 15px;
+    }
+
+    .service-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .service-card {
+      padding: 16px;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      background: var(--white);
+    }
+
+    .detail-card {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .detail-card-title {
+      margin: 0;
+      padding: 18px 20px 4px;
+      color: var(--gray-900);
+      font-size: 18px;
+      font-weight: 950;
+      letter-spacing: .02em;
+    }
+
+    .detail-section {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .detail-section:last-child {
+      border-bottom: 0;
+    }
+
+    .detail-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 14px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .detail-title::before {
+      content: "";
+      width: 7px;
+      height: 22px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--blue), var(--red));
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 9px 0;
+      color: var(--gray-700);
+      border-top: 1px solid #eef3f8;
+      line-height: 1.35;
+    }
+
+    .detail-row:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .detail-row strong {
+      color: var(--gray-900);
+    }
+
+    .detail-note {
+      margin: 0;
+      color: var(--gray-900);
+      font-size: 16px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    button.service-card {
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+
+    button.service-card:hover,
+    button.service-card:focus {
+      transform: translateY(-2px);
+      border-color: rgba(19, 88, 216, .32);
+      box-shadow: 0 16px 34px rgba(23, 32, 51, .12);
+      outline: none;
+    }
+
+    .client-mode button.service-card {
+      position: relative;
+      padding: 18px 56px 18px 18px;
+      border-color: #cfd9e6;
+      background:
+        linear-gradient(90deg, rgba(19, 88, 216, .05), transparent 42%),
+        var(--white);
+      box-shadow: 0 12px 28px rgba(23, 32, 51, .08);
+    }
+
+    .client-mode button.service-card::after {
+      content: "Ver";
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      min-height: 30px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0 10px;
+      border-radius: 999px;
+      color: var(--blue);
+      background: #edf4ff;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .client-mode .service-top {
+      margin-bottom: 8px;
+    }
+
+    .client-mode .service-top strong {
+      font-size: 20px;
+      letter-spacing: .01em;
+    }
+
+    .client-mode .public-service-card {
+      display: grid;
+      gap: 14px;
+      border-radius: 12px;
+    }
+
+    .client-mode .public-service-main {
+      display: grid;
+      gap: 10px;
+    }
+
+    .client-mode .public-service-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 14px;
+    }
+
+    .client-mode .public-service-label {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--gray-700);
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .client-mode .public-service-value {
+      display: block;
+      color: var(--gray-900);
+      font-size: 24px;
+      font-weight: 950;
+      line-height: 1.05;
+      letter-spacing: .01em;
+    }
+
+    .client-mode .public-service-next {
+      text-align: right;
+    }
+
+    .client-mode .public-service-next .public-service-value {
+      color: #0f4a97;
+      font-size: 21px;
+    }
+
+    .client-mode .public-service-date {
+      color: var(--gray-900);
+      font-size: 17px;
+      font-weight: 850;
+    }
+
+    .client-mode .public-service-oil {
+      margin: 0;
+      padding-top: 10px;
+      border-top: 1px solid #e6edf6;
+      color: var(--gray-700);
+      font-size: 17px;
+      line-height: 1.32;
+      font-weight: 750;
+    }
+
+    .client-mode .public-service-oil strong {
+      color: var(--gray-900);
+      font-weight: 900;
+    }
+
+    .service-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .service-top strong { font-size: 18px; }
+
+    .empty {
+      padding: 24px;
+      border: 1px dashed #b8c3d2;
+      border-radius: var(--radius);
+      color: var(--gray-700);
+      background: rgba(255, 255, 255, .62);
+      text-align: center;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(23, 32, 51, .48);
+      backdrop-filter: blur(8px);
+      z-index: 20;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      width: min(820px, 100%);
+      max-height: min(880px, 92vh);
+      overflow-y: auto;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .profile-menu {
+      position: relative;
+      margin-bottom: 14px;
+    }
+
+    .profile-menu-panel {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      z-index: 5;
+      width: min(290px, 100%);
+      padding: 10px;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      background: var(--white);
+      box-shadow: 0 22px 50px rgba(23, 32, 51, .18);
+    }
+
+    .profile-menu.open .profile-menu-panel {
+      display: grid;
+      gap: 8px;
+    }
+
+    #qrMenu {
+      width: 100%;
+    }
+
+    #qrMenu .profile-menu-panel {
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
+      width: min(320px, calc(100vw - 36px));
+      max-width: 100%;
+    }
+
+    .parts-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .parts-section {
+      padding: 14px;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      background: #f8fbff;
+    }
+
+    .parts-section h4 {
+      margin: 0 0 10px;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 950;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .close-btn {
+      width: 40px;
+      min-height: 40px;
+      font-size: 20px;
+    }
+
+    .hidden { display: none !important; }
+
+    body.client-mode {
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, #f7faff 0%, #eef4fb 48%, #f8fbff 100%);
+    }
+
+    body.client-mode .app {
+      display: block;
+    }
+
+    body.client-mode .sidebar,
+    body.client-mode .topbar,
+    body.client-mode .view:not(#view-client) {
+      display: none !important;
+    }
+
+    body.client-mode .main {
+      padding: 0;
+    }
+
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: fixed;
+        z-index: 15;
+        width: min(320px, 86vw);
+        transform: translateX(-105%);
+        transition: transform .22s ease;
+        box-shadow: 24px 0 55px rgba(23, 32, 51, .18);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .menu-btn { display: inline-grid; place-items: center; }
+      .topbar {
+        align-items: flex-start;
+      }
+      .top-left {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .mobile-title-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .top-logo {
+        display: block;
+      }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .qr-layout, .public-hero, .dashboard-actions { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      button, input, select {
+        min-height: 48px;
+      }
+
+      .main { padding: 14px 10px 38px; }
+      .topbar { align-items: stretch; flex-direction: column; }
+      .actions { display: grid; grid-template-columns: 1fr; }
+      .toolbar { grid-template-columns: 1fr; }
+      .form-grid, .photo-field { grid-template-columns: 1fr; }
+      .photo-preview { width: 100%; }
+      .preview-grid { grid-template-columns: 1fr; }
+      .meta { grid-template-columns: 1fr; }
+      .vehicle-actions { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr; }
+      .public-header { align-items: flex-start; flex-direction: column; }
+      .client-mode .public-header {
+        gap: 12px;
+      }
+      .client-mode .public-header .brand {
+        width: 100%;
+      }
+      .client-mode .public-header .schedule-btn {
+        width: 100%;
+      }
+      .client-mode .brand h1 {
+        font-size: 19px;
+      }
+      .client-mode .public-info {
+        padding: 20px;
+      }
+      .client-mode .public-info .meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .client-mode .public-info h2 {
+        font-size: clamp(30px, 9vw, 40px);
+        line-height: 1;
+      }
+      .client-mode .public-info p {
+        font-size: 17px;
+      }
+      .client-mode .service-top {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .client-mode .public-service-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .client-mode .public-service-next {
+        text-align: left;
+      }
+      .modal-backdrop {
+        align-items: stretch;
+        padding: 10px;
+      }
+      .modal {
+        max-height: calc(100vh - 20px);
+        width: 100%;
+      }
+      .card-body {
+        padding: 16px;
+      }
+      .detail-section {
+        padding: 16px;
+      }
+      .detail-card-title {
+        padding: 16px 16px 2px;
+        font-size: 17px;
+      }
+      .detail-title {
+        margin-bottom: 12px;
+        font-size: 11px;
+      }
+      .detail-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: flex-start;
+        gap: 4px;
+        padding: 11px 0;
+      }
+      .detail-row strong {
+        font-size: 16px;
+      }
+      .filter-row {
+        grid-template-columns: 1fr;
+      }
+      .filter-extra {
+        grid-template-columns: 1fr;
+      }
+      .filter-options {
+        justify-content: flex-start;
+      }
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+
+      #ticketPreview,
+      #ticketPreview * {
+        visibility: visible;
+      }
+
+      #ticketPreview {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 72mm;
+        max-width: 72mm;
+        border: 0;
+        margin: 0;
+        padding: 4mm;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark" id="sidebarLogo">AM</div>
+        <div>
+          <h1 id="brandName">Taller QR</h1>
+          <p>Panel de mantenimiento</p>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Navegación principal">
+        <div class="nav-title">Principal</div>
+        <button class="active" data-view="dashboard"><span class="nav-icon">01</span>Dashboard</button>
+        <button data-view="vehicles"><span class="nav-icon">02</span>Vehículos</button>
+        <button data-view="services"><span class="nav-icon">03</span>Servicios</button>
+
+        <div class="nav-title">Herramientas</div>
+        <button data-view="qr"><span class="nav-icon">04</span>QR de cliente</button>
+        <button data-view="settings"><span class="nav-icon">05</span>Mi taller</button>
+
+        <div class="nav-title">Sistema</div>
+        <button class="danger" id="resetDemo"><span class="nav-icon">--</span>Reiniciar datos</button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="top-left">
+          <div class="mobile-title-row">
+            <img class="top-logo" id="topLogo" alt="Logo del taller">
+            <div class="page-title">
+              <h2 id="pageTitle">Dashboard</h2>
+              <p id="pageSubtitle">Automotriz Medina SV<span class="subtitle">Control de mantenimiento</span></p>
+            </div>
+          </div>
+          <button class="menu-btn" id="menuBtn">Menu</button>
+        </div>
+      </header>
+
+      <section class="view" id="view-dashboard">
+        <div class="grid dashboard-actions">
+          <button class="card action-card" id="dashboardAddVehicle">
+            <span class="action-icon">+</span>
+            <strong>Registrar nuevo vehículo</strong>
+          </button>
+          <button class="card action-card" id="dashboardAddService">
+            <span class="action-icon">↻</span>
+            <strong>Agregar mantenimiento</strong>
+          </button>
+        </div>
+        <div class="card" id="dashboardAlerts" style="margin-top:18px">
+          <div class="card-head">
+            <h3>Mantenimientos próximos</h3>
+          </div>
+          <div class="card-body">
+            <div class="service-list" id="dueSoonList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view hidden" id="view-vehicles">
+        <div class="toolbar">
+          <input id="vehicleSearch" placeholder="Buscar por placa, cliente, marca o modelo">
+          <select id="vehicleFilter">
+            <option value="all">Todos</option>
+            <option value="ok">Al día</option>
+            <option value="soon">Próximos</option>
+            <option value="due">Vencidos</option>
+          </select>
+        </div>
+        <div class="grid vehicle-grid" id="vehicleGrid"></div>
+      </section>
+
+      <section class="view hidden" id="view-services">
+        <div class="card">
+          <div class="card-head">
+            <h3>Servicios</h3>
+          </div>
+          <div class="empty-module">
+            <div>
+              <h3 style="margin:0 0 8px">Módulo pendiente</h3>
+              <p style="margin:0; color:var(--gray-700)">Por ahora dejamos esta área en blanco para trabajarla después.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view hidden" id="view-qr">
+        <div class="card">
+          <div class="card-head">
+            <h3>QR único para el cliente</h3>
+          </div>
+          <div class="card-body">
+            <div class="qr-layout">
+              <div class="grid">
+                <div class="profile-menu" id="qrMenu">
+                  <button class="btn soft" id="qrMenuToggle" style="width:100%">Menú</button>
+                  <div class="profile-menu-panel" id="qrMenuPanel">
+                    <button class="btn primary" id="openClientView">Abrir vista cliente</button>
+                    <button class="btn whatsapp-btn" id="sendClientLink">☎ Enviar link al cliente</button>
+                    <button class="btn soft" id="copyClientLink">Copiar link</button>
+                    <button class="btn soft" id="downloadQr">Descargar QR</button>
+                    <button class="btn danger-btn" id="printTicket">Imprimir ticket</button>
+                  </div>
+                </div>
+                <div>
+                  <label for="qrSearch">Buscar vehículo</label>
+                  <input id="qrSearch" placeholder="Buscar por placa, cliente, marca o modelo">
+                </div>
+                <div>
+                  <label for="qrVehicle">Vehículo</label>
+                  <select id="qrVehicle"></select>
+                </div>
+                <div class="hidden" id="qrLink"></div>
+              </div>
+              <div class="hidden" id="qrOutput">
+                <div class="qr-box">
+                  <img id="qrImage" alt="Código QR del vehículo">
+                </div>
+                <div class="form-grid hidden" id="qrClientInfo" style="margin-top:14px">
+                  <div>
+                    <label for="qrClientName">Cliente</label>
+                    <input id="qrClientName" readonly>
+                  </div>
+                  <div>
+                    <label for="qrClientPhone">WhatsApp</label>
+                    <input id="qrClientPhone" readonly>
+                  </div>
+                </div>
+                <div class="ticket-preview" id="ticketPreview">
+                  <strong id="ticketShop">Taller QR</strong>
+                  <span id="ticketPlate">---</span>
+                  <img id="ticketQr" alt="QR para ticket">
+                  <span>Escaneá para ver el historial</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view hidden" id="view-settings">
+        <div class="card">
+          <div class="card-head">
+            <h3>Datos del taller</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div>
+                <label for="shopName">Nombre del taller</label>
+                <input id="shopName">
+              </div>
+              <div>
+                <label for="shopPhone">WhatsApp del taller</label>
+                <input id="shopPhone">
+              </div>
+              <div class="full">
+                <label for="shopAddress">Dirección o zona</label>
+                <input id="shopAddress">
+              </div>
+              <div class="full">
+                <label>Imagen / logo del taller</label>
+                <div class="preview-grid">
+                  <img class="media-preview" id="shopLogoPreview" alt="Logo del taller">
+                  <input id="shopLogo" type="file" accept="image/*">
+                </div>
+              </div>
+              <div class="full">
+                <button class="btn primary" id="saveSettings">Guardar datos</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view hidden" id="view-client">
+        <div class="public-shell">
+          <div class="public-header">
+            <div class="brand">
+              <img class="public-logo" id="clientLogo" alt="Logo del taller">
+              <div>
+                <h1 id="clientShopName">Taller QR</h1>
+                <p id="clientShopInfo">Historial del vehículo</p>
+              </div>
+            </div>
+            <button class="btn schedule-btn" id="clientWhatsapp">Agendar mi mantenimiento en taller</button>
+          </div>
+
+          <div class="card">
+            <div class="public-hero">
+              <div class="public-info">
+                <div>
+                  <h2 id="clientPlate">---</h2>
+                  <p id="clientModel">Vehículo</p>
+                </div>
+                <div class="meta">
+                  <div><span>Lectura actual</span><strong id="clientMileage">0</strong></div>
+                  <div><span>Servicios realizados</span><strong id="clientServicesCount">0</strong></div>
+                </div>
+                <div class="notice" id="clientNext">Próximo servicio pendiente.</div>
+                <div class="notice hidden" id="clientTimeNext"></div>
+                <div class="client-next-list hidden" id="clientComponentNext"></div>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="client-log-title">Bitácora de Mantenimiento</h3>
+          <p class="hint" style="margin:0 0 12px">Haz clic en cada mantenimiento para ver el desglose.</p>
+          <div class="service-list" id="clientServices"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="vehicleModal">
+    <div class="card modal">
+      <div class="card-head">
+        <h3 id="vehicleModalTitle">Nuevo vehículo</h3>
+        <button class="close-btn" data-close="vehicleModal">x</button>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div>
+            <label for="vehiclePlate">Placa del vehículo</label>
+            <input id="vehiclePlate" autocomplete="off" maxlength="12" required>
+            <p class="field-msg" id="vehiclePlateMsg"></p>
+          </div>
+          <div>
+            <label for="vehicleBrand">Marca</label>
+            <input id="vehicleBrand" autocomplete="off" required>
+            <p class="field-msg" id="vehicleBrandMsg"></p>
+          </div>
+          <div>
+            <label for="vehicleModel">Modelo</label>
+            <input id="vehicleModel" autocomplete="off" required>
+            <p class="field-msg" id="vehicleModelMsg"></p>
+          </div>
+          <div>
+            <label for="vehicleYear">Año</label>
+            <input id="vehicleYear" inputmode="numeric" maxlength="4" required>
+            <p class="field-msg" id="vehicleYearMsg"></p>
+          </div>
+          <div>
+            <label for="vehicleOwner">Cliente / propietario opcional</label>
+            <input id="vehicleOwner">
+          </div>
+          <div>
+            <label for="vehiclePhone">WhatsApp del cliente</label>
+            <input id="vehiclePhone" inputmode="tel">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" data-close="vehicleModal">Cancelar</button>
+          <button class="btn primary" id="saveVehicle">Guardar vehículo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="serviceModal">
+    <div class="card modal">
+      <div class="card-head">
+        <h3>Buscar vehículo</h3>
+        <button class="close-btn" data-close="serviceModal">x</button>
+      </div>
+      <div class="card-body">
+        <div class="grid">
+          <div>
+            <label for="serviceSearch">Buscar por marca, modelo, placa o cliente</label>
+            <input id="serviceSearch">
+          </div>
+          <div class="service-list" id="serviceVehicleResults"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="maintenanceModal">
+    <div class="card modal">
+      <div class="card-head">
+        <h3 id="maintenanceTitle">Nuevo mantenimiento</h3>
+        <button class="close-btn" data-close="maintenanceModal">x</button>
+      </div>
+      <div class="card-body">
+        <div class="notice" id="maintenanceVehicleSummary" style="margin-bottom:14px"></div>
+        <div class="form-grid">
+          <div>
+            <label for="serviceDate">Fecha</label>
+            <input id="serviceDate" type="date">
+          </div>
+          <div class="full">
+            <label>¿Qué mantenimiento se va a realizar?</label>
+            <div class="service-type-grid" id="serviceTypeGrid">
+              <label class="service-type-row">
+                <input type="checkbox" data-service-section-toggle="motor">
+                <span class="service-type-title">Cambio de aceite de motor<small>Lectura, próximo servicio, viscosidad y cantidad</small></span>
+                <span class="service-type-toggle">+</span>
+              </label>
+              <label class="service-type-row">
+                <input type="checkbox" data-service-section-toggle="transmission">
+                <span class="service-type-title">Aceite de transmisión<small>Lectura, intervalo y próximo servicio</small></span>
+                <span class="service-type-toggle">+</span>
+              </label>
+              <label class="service-type-row">
+                <input type="checkbox" data-service-section-toggle="frontDiff">
+                <span class="service-type-title">Diferencial delantero<small>Viscosidad, marca interna e intervalo</small></span>
+                <span class="service-type-toggle">+</span>
+              </label>
+              <label class="service-type-row">
+                <input type="checkbox" data-service-section-toggle="rearDiff">
+                <span class="service-type-title">Diferencial trasero<small>Viscosidad, marca interna e intervalo</small></span>
+                <span class="service-type-toggle">+</span>
+              </label>
+              <label class="service-type-row">
+                <input type="checkbox" data-service-section-toggle="transfer">
+                <span class="service-type-title">Transferencia<small>Tipo de aceite, marca interna e intervalo</small></span>
+                <span class="service-type-toggle">+</span>
+              </label>
+            </div>
+          </div>
+          <div class="full maintenance-section" data-service-section="motor">
+            <h4>Motor</h4>
+            <div class="actions" style="margin-bottom:12px"><button type="button" class="btn soft" data-autofill-service="motor">Autollenado</button></div>
+            <div class="form-grid">
+              <div>
+                <label>Unidad de lectura</label>
+                <div class="unit-picker">
+                  <label><input type="radio" name="serviceUnit" value="km" checked> Kilómetros</label>
+                  <label><input type="radio" name="serviceUnit" value="mi"> Millas</label>
+                </div>
+              </div>
+              <div>
+                <label for="serviceMileage">Lectura del odómetro</label>
+                <input id="serviceMileage" inputmode="numeric">
+              </div>
+              <div>
+                <label for="serviceNext">Próximo servicio motor</label>
+                <input id="serviceNext" inputmode="numeric">
+              </div>
+              <div>
+                <label for="serviceOil">Viscosidad aceite de motor</label>
+                <input id="serviceOil">
+              </div>
+              <div>
+                <label for="serviceOilBrand">Marca de aceite</label>
+                <input id="serviceOilBrand">
+              </div>
+              <div>
+                <label for="serviceOilUnit">Unidad de aceite</label>
+                <select id="serviceOilUnit">
+                  <option value="LITROS">Litros</option>
+                  <option value="CUARTOS">Cuartos</option>
+                </select>
+              </div>
+              <div>
+                <label for="serviceOilQuantity">Cantidad de aceite</label>
+                <select id="serviceOilQuantity">
+                  <option value="">Seleccionar</option>
+                  <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                  <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+                </select>
+              </div>
+              <div>
+                <label for="serviceOilRealQuantity">Cantidad real utilizada</label>
+                <input id="serviceOilRealQuantity" placeholder="Ej: 4.5, 5 1/2...">
+              </div>
+            </div>
+          </div>
+          <div class="full maintenance-section" data-service-section="transmission">
+            <h4>Transmisión</h4>
+            <div class="actions" style="margin-bottom:12px"><button type="button" class="btn soft" data-autofill-service="transmission">Autollenado</button></div>
+            <div class="form-grid">
+              <div><label>Unidad de lectura</label><div class="unit-picker"><label><input type="radio" name="transmissionUnit" value="km" checked> Kilómetros</label><label><input type="radio" name="transmissionUnit" value="mi"> Millas</label></div></div>
+              <div><label for="transmissionMileage">Lectura del odómetro</label><input id="transmissionMileage" inputmode="numeric"></div>
+              <div><label for="transmissionOil">Aceite de transmisión</label><input id="transmissionOil"></div>
+              <div><label for="transmissionOilBrand">Marca de aceite</label><input id="transmissionOilBrand"></div>
+              <div><label for="transmissionOilUnit">Unidad de aceite</label><select id="transmissionOilUnit"><option value="LITROS">Litros</option><option value="CUARTOS">Cuartos</option></select></div>
+              <div><label for="transmissionOilQuantity">Cantidad de aceite</label><select id="transmissionOilQuantity" data-oil-quantity-select></select></div>
+              <div><label for="transmissionOilRealQuantity">Cantidad real utilizada</label><input id="transmissionOilRealQuantity" placeholder="Ej: 3.5, 4 1/2..."></div>
+              <div><label for="transmissionInterval">Intervalo transmisión</label><select id="transmissionInterval"></select></div>
+              <div id="transmissionIntervalCustomWrap" class="hidden"><label for="transmissionIntervalCustom">Otro intervalo</label><input id="transmissionIntervalCustom" inputmode="numeric"></div>
+              <div><label for="transmissionNext">Próximo servicio transmisión</label><input id="transmissionNext" inputmode="numeric" placeholder="Esta área se calcula de forma automática"></div>
+            </div>
+          </div>
+          <div class="full maintenance-section" data-service-section="frontDiff">
+            <h4>Diferencial delantero</h4>
+            <div class="actions" style="margin-bottom:12px"><button type="button" class="btn soft" data-autofill-service="frontDiff">Autollenado</button></div>
+            <div class="form-grid">
+              <div><label>Unidad de lectura</label><div class="unit-picker"><label><input type="radio" name="frontDiffUnit" value="km" checked> Kilómetros</label><label><input type="radio" name="frontDiffUnit" value="mi"> Millas</label></div></div>
+              <div><label for="frontDiffMileage">Lectura del odómetro</label><input id="frontDiffMileage" inputmode="numeric"></div>
+              <div><label for="frontDiffOil">Aceite diferencial delantero</label><input id="frontDiffOil"></div>
+              <div><label for="frontDiffOilBrand">Marca de aceite</label><input id="frontDiffOilBrand"></div>
+              <div><label for="frontDiffOilUnit">Unidad de aceite</label><select id="frontDiffOilUnit"><option value="LITROS">Litros</option><option value="CUARTOS">Cuartos</option></select></div>
+              <div><label for="frontDiffOilQuantity">Cantidad de aceite</label><select id="frontDiffOilQuantity" data-oil-quantity-select></select></div>
+              <div><label for="frontDiffOilRealQuantity">Cantidad real utilizada</label><input id="frontDiffOilRealQuantity" placeholder="Ej: 1.5, 2..."></div>
+              <div><label for="frontDiffInterval">Intervalo diferencial delantero</label><select id="frontDiffInterval"></select></div>
+              <div id="frontDiffIntervalCustomWrap" class="hidden"><label for="frontDiffIntervalCustom">Otro intervalo</label><input id="frontDiffIntervalCustom" inputmode="numeric"></div>
+              <div><label for="frontDiffNext">Próximo servicio diferencial delantero</label><input id="frontDiffNext" inputmode="numeric" placeholder="Esta área se calcula de forma automática"></div>
+            </div>
+          </div>
+          <div class="full maintenance-section" data-service-section="rearDiff">
+            <h4>Diferencial trasero</h4>
+            <div class="actions" style="margin-bottom:12px"><button type="button" class="btn soft" data-autofill-service="rearDiff">Autollenado</button></div>
+            <div class="form-grid">
+              <div><label>Unidad de lectura</label><div class="unit-picker"><label><input type="radio" name="rearDiffUnit" value="km" checked> Kilómetros</label><label><input type="radio" name="rearDiffUnit" value="mi"> Millas</label></div></div>
+              <div><label for="rearDiffMileage">Lectura del odómetro</label><input id="rearDiffMileage" inputmode="numeric"></div>
+              <div><label for="rearDiffOil">Aceite diferencial trasero</label><input id="rearDiffOil"></div>
+              <div><label for="rearDiffOilBrand">Marca de aceite</label><input id="rearDiffOilBrand"></div>
+              <div><label for="rearDiffOilUnit">Unidad de aceite</label><select id="rearDiffOilUnit"><option value="LITROS">Litros</option><option value="CUARTOS">Cuartos</option></select></div>
+              <div><label for="rearDiffOilQuantity">Cantidad de aceite</label><select id="rearDiffOilQuantity" data-oil-quantity-select></select></div>
+              <div><label for="rearDiffOilRealQuantity">Cantidad real utilizada</label><input id="rearDiffOilRealQuantity" placeholder="Ej: 1.5, 2..."></div>
+              <div><label for="rearDiffInterval">Intervalo diferencial trasero</label><select id="rearDiffInterval"></select></div>
+              <div id="rearDiffIntervalCustomWrap" class="hidden"><label for="rearDiffIntervalCustom">Otro intervalo</label><input id="rearDiffIntervalCustom" inputmode="numeric"></div>
+              <div><label for="rearDiffNext">Próximo servicio diferencial trasero</label><input id="rearDiffNext" inputmode="numeric" placeholder="Esta área se calcula de forma automática"></div>
+            </div>
+          </div>
+          <div class="full maintenance-section" data-service-section="transfer">
+            <h4>Transferencia</h4>
+            <div class="actions" style="margin-bottom:12px"><button type="button" class="btn soft" data-autofill-service="transfer">Autollenado</button></div>
+            <div class="form-grid">
+              <div><label>Unidad de lectura</label><div class="unit-picker"><label><input type="radio" name="transferUnit" value="km" checked> Kilómetros</label><label><input type="radio" name="transferUnit" value="mi"> Millas</label></div></div>
+              <div><label for="transferMileage">Lectura del odómetro</label><input id="transferMileage" inputmode="numeric"></div>
+              <div><label for="transferOil">Aceite de transferencia</label><input id="transferOil"></div>
+              <div><label for="transferOilBrand">Marca de aceite</label><input id="transferOilBrand"></div>
+              <div><label for="transferOilUnit">Unidad de aceite</label><select id="transferOilUnit"><option value="LITROS">Litros</option><option value="CUARTOS">Cuartos</option></select></div>
+              <div><label for="transferOilQuantity">Cantidad de aceite</label><select id="transferOilQuantity" data-oil-quantity-select></select></div>
+              <div><label for="transferOilRealQuantity">Cantidad real utilizada</label><input id="transferOilRealQuantity" placeholder="Ej: 1.5, 2..."></div>
+              <div><label for="transferInterval">Intervalo transferencia</label><select id="transferInterval"></select></div>
+              <div id="transferIntervalCustomWrap" class="hidden"><label for="transferIntervalCustom">Otro intervalo</label><input id="transferIntervalCustom" inputmode="numeric"></div>
+              <div><label for="transferNext">Próximo servicio transferencia</label><input id="transferNext" inputmode="numeric" placeholder="Esta área se calcula de forma automática"></div>
+            </div>
+          </div>
+          <div class="full">
+            <button type="button" class="service-type-row" id="filterToggle">
+              <span class="service-type-title">Servicios realizados a los filtros<small>Cambio, limpieza o sin cambio</small></span>
+              <span class="service-type-toggle">+</span>
+            </button>
+            <div class="maintenance-section" id="filterSection">
+              <div class="actions" style="margin-bottom:12px"><button type="button" class="btn soft" data-autofill-service="filters">Autollenado</button></div>
+              <div class="filter-services" id="serviceFilters">
+              <div class="filter-row" data-filter="oil">
+                <span class="filter-name">Filtro de aceite</span>
+                <div class="filter-options">
+                  <label><input type="radio" name="filter_oil" value="Cambio">Cambio</label>
+                  <label><input type="radio" name="filter_oil" value="Limpieza">Limpieza</label>
+                  <label><input type="radio" name="filter_oil" value="No se cambió" checked>No se cambió</label>
+                </div>
+                <div class="filter-extra">
+                  <div>
+                    <label for="filter_oil_brand">Marca</label>
+                    <input id="filter_oil_brand" data-filter-extra="brand">
+                  </div>
+                  <div>
+                    <label for="filter_oil_code">Código</label>
+                    <input id="filter_oil_code" data-filter-extra="code">
+                  </div>
+                </div>
+              </div>
+              <div class="filter-row" data-filter="engineAir">
+                <span class="filter-name">Filtro de aire de motor</span>
+                <div class="filter-options">
+                  <label><input type="radio" name="filter_engineAir" value="Cambio">Cambio</label>
+                  <label><input type="radio" name="filter_engineAir" value="Limpieza">Limpieza</label>
+                  <label><input type="radio" name="filter_engineAir" value="No se cambió" checked>No se cambió</label>
+                </div>
+                <div class="filter-extra">
+                  <div>
+                    <label for="filter_engineAir_brand">Marca</label>
+                    <input id="filter_engineAir_brand" data-filter-extra="brand">
+                  </div>
+                  <div>
+                    <label for="filter_engineAir_code">Código</label>
+                    <input id="filter_engineAir_code" data-filter-extra="code">
+                  </div>
+                </div>
+              </div>
+              <div class="filter-row" data-filter="fuel">
+                <span class="filter-name">Filtro de combustible</span>
+                <div class="filter-options">
+                  <label><input type="radio" name="filter_fuel" value="Cambio">Cambio</label>
+                  <label><input type="radio" name="filter_fuel" value="Limpieza">Limpieza</label>
+                  <label><input type="radio" name="filter_fuel" value="No se cambió" checked>No se cambió</label>
+                </div>
+                <div class="filter-extra">
+                  <div>
+                    <label for="filter_fuel_brand">Marca</label>
+                    <input id="filter_fuel_brand" data-filter-extra="brand">
+                  </div>
+                  <div>
+                    <label for="filter_fuel_code">Código</label>
+                    <input id="filter_fuel_code" data-filter-extra="code">
+                  </div>
+                </div>
+              </div>
+              <div class="filter-row" data-filter="ac">
+                <span class="filter-name">Filtro de aire acondicionado</span>
+                <div class="filter-options">
+                  <label><input type="radio" name="filter_ac" value="Cambio">Cambio</label>
+                  <label><input type="radio" name="filter_ac" value="Limpieza">Limpieza</label>
+                  <label><input type="radio" name="filter_ac" value="No se cambió" checked>No se cambió</label>
+                </div>
+                <div class="filter-extra">
+                  <div>
+                    <label for="filter_ac_brand">Marca</label>
+                    <input id="filter_ac_brand" data-filter-extra="brand">
+                  </div>
+                  <div>
+                    <label for="filter_ac_code">Código</label>
+                    <input id="filter_ac_code" data-filter-extra="code">
+                  </div>
+                </div>
+              </div>
+              <div class="filter-row" data-filter="transOil">
+                <span class="filter-name">Filtro de aceite de transmisión</span>
+                <div class="filter-options">
+                  <label><input type="radio" name="filter_transOil" value="Cambio">Cambio</label>
+                  <label><input type="radio" name="filter_transOil" value="Limpieza">Limpieza</label>
+                  <label><input type="radio" name="filter_transOil" value="No se cambió" checked>No se cambió</label>
+                </div>
+                <div class="filter-extra">
+                  <div><label for="filter_transOil_brand">Marca</label><input id="filter_transOil_brand" data-filter-extra="brand"></div>
+                  <div><label for="filter_transOil_code">Código</label><input id="filter_transOil_code" data-filter-extra="code"></div>
+                </div>
+              </div>
+              <div class="filter-row" data-filter="transCooler">
+                <span class="filter-name">Filtro de enfriador de transmisión</span>
+                <div class="filter-options">
+                  <label><input type="radio" name="filter_transCooler" value="Cambio">Cambio</label>
+                  <label><input type="radio" name="filter_transCooler" value="Limpieza">Limpieza</label>
+                  <label><input type="radio" name="filter_transCooler" value="No se cambió" checked>No se cambió</label>
+                </div>
+                <div class="filter-extra">
+                  <div><label for="filter_transCooler_brand">Marca</label><input id="filter_transCooler_brand" data-filter-extra="brand"></div>
+                  <div><label for="filter_transCooler_code">Código</label><input id="filter_transCooler_code" data-filter-extra="code"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div class="full">
+            <button type="button" class="service-type-row" id="otherServiceToggle">
+              <span class="service-type-title">Agregar otro servicio<small>Servicio manual con lectura, próximo servicio y descripción</small></span>
+              <span class="service-type-toggle">+</span>
+            </button>
+            <div class="maintenance-section" id="otherServiceSection">
+              <div class="form-grid">
+                <div>
+                  <label>Unidad de lectura</label>
+                  <div class="unit-picker">
+                    <label><input type="radio" name="otherServiceUnit" value="km" checked> Kilómetros</label>
+                    <label><input type="radio" name="otherServiceUnit" value="mi"> Millas</label>
+                  </div>
+                </div>
+                <div>
+                  <label for="otherServiceMileage">Lectura del odómetro</label>
+                  <input id="otherServiceMileage" inputmode="numeric">
+                </div>
+                <div>
+                  <label for="otherServiceNext">Próximo servicio</label>
+                  <input id="otherServiceNext" inputmode="numeric">
+                </div>
+                <div class="full">
+                  <label for="otherServiceDescription">Descripción del servicio</label>
+                  <textarea id="otherServiceDescription"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="full">
+            <label for="serviceDetails">Observaciones</label>
+            <textarea id="serviceDetails"></textarea>
+          </div>
+          <div class="full">
+            <label for="serviceReminder">¿Desea recordar este mantenimiento al cliente?</label>
+            <select id="serviceReminder">
+              <option value="">No dejar recordatorio</option>
+              <option value="1">Recordar en 1 mes</option>
+              <option value="2">Recordar en 2 meses</option>
+              <option value="3">Recordar en 3 meses</option>
+              <option value="6">Recordar en 6 meses</option>
+              <option value="12">Recordar en 12 meses</option>
+              <option value="manual">Ingreso manual</option>
+            </select>
+            <div id="serviceReminderDaysWrap" class="hidden" style="margin-top:12px">
+              <label for="serviceReminderDays">Cantidad de días para el recordatorio</label>
+              <input id="serviceReminderDays" inputmode="numeric">
+            </div>
+            <p class="field-msg">Para cambio de aceite de motor, el plazo máximo recomendado es 6 meses.</p>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" data-close="maintenanceModal">Cancelar</button>
+          <button class="btn primary" id="saveService">Guardar mantenimiento</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="profileModal">
+    <div class="card modal">
+      <div class="card-head">
+        <h3 id="profileTitle">Ficha del vehículo</h3>
+        <button class="close-btn" data-close="profileModal">x</button>
+      </div>
+      <div class="card-body">
+        <div class="profile-menu" id="profileMenu">
+          <button class="btn soft" id="profileMenuToggle" style="width:100%">Menú</button>
+          <div class="profile-menu-panel" id="profileMenuPanel">
+            <button class="btn primary" id="profileAddService">Agregar nuevo servicio</button>
+            <button class="btn soft" id="profileEditVehicle">Editar perfil del cliente</button>
+            <button class="btn soft" id="profileOpenQr">Ver QR del cliente</button>
+            <button class="btn soft" id="profileParts">Verificar refacciones</button>
+            <button class="btn whatsapp-btn hidden" id="profileReminderWhatsapp">Enviar recordatorio WhatsApp</button>
+            <button class="btn danger-btn" id="profileDeleteVehicle">Eliminar cliente</button>
+          </div>
+        </div>
+        <button class="btn soft" id="profileToggleLog" style="width:100%; margin-bottom:14px">Leer bitácora</button>
+        <div class="meta" style="margin-bottom:14px">
+          <div><span>Vehículo</span><strong id="profileModel">---</strong></div>
+          <div><span>Lectura</span><strong id="profileMileage">---</strong></div>
+          <div><span>Placa</span><strong id="profilePlate">---</strong></div>
+        </div>
+        <div id="profileLogWrap" class="hidden" style="margin-bottom:16px">
+          <h3 style="margin:0 0 12px">Bitácora de mantenimiento</h3>
+          <div class="service-list" id="profileServices"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="partsModal">
+    <div class="card modal">
+      <div class="card-head">
+        <h3 id="partsTitle">Verificar refacciones</h3>
+        <button class="close-btn" data-close="partsModal">x</button>
+      </div>
+      <div class="card-body" id="partsBody"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="serviceDetailModal">
+    <div class="card modal">
+      <div class="card-head">
+        <h3 id="serviceDetailTitle">Detalle del mantenimiento</h3>
+        <button class="close-btn" data-close="serviceDetailModal">x</button>
+      </div>
+      <div class="card-body" id="serviceDetailBody"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "tallerQrProfesional.v1";
+
+    const fallbackPhoto = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760">
+        <rect width="1200" height="760" fill="#e8eef6"/>
+        <rect x="120" y="470" width="960" height="56" rx="28" fill="#cbd6e4"/>
+        <path d="M258 454h684l-56-142c-18-44-60-73-108-73H430c-49 0-94 31-111 77z" fill="#ffffff"/>
+        <path d="M395 295h385l39 95H350z" fill="#1358d8"/>
+        <path d="M258 403h684c38 0 70 31 70 70v6H188v-6c0-39 31-70 70-70z" fill="#f8fbff"/>
+        <circle cx="362" cy="484" r="72" fill="#172033"/>
+        <circle cx="362" cy="484" r="32" fill="#dbe2ea"/>
+        <circle cx="822" cy="484" r="72" fill="#172033"/>
+        <circle cx="822" cy="484" r="32" fill="#dbe2ea"/>
+        <rect x="515" y="462" width="160" height="34" rx="8" fill="#d82034"/>
+      </svg>`);
+
+    const els = {};
+    let data = loadData();
+    let activeView = "dashboard";
+    let editingVehicleId = null;
+    let activeProfileVehicleId = null;
+    let activeMaintenanceVehicleId = null;
+    let editingServiceId = null;
+
+    const FILTER_CATALOG = [
+      { key: "oil", label: "Filtro de aceite", legacy: ["Aceite", "Filtro de aceite"] },
+      { key: "engineAir", label: "Filtro de aire de motor", legacy: ["Aire", "Filtro de aire de motor"] },
+      { key: "fuel", label: "Filtro de combustible", legacy: ["Combustible", "Filtro de combustible"] },
+      { key: "ac", label: "Filtro de aire acondicionado", legacy: ["Cabina", "Filtro de aire acondicionado"] },
+      { key: "transOil", label: "Filtro de aceite de transmisión", legacy: ["Filtro de transmisión", "Filtro de aceite de transmisión"] },
+      { key: "transCooler", label: "Filtro de enfriador de transmisión", legacy: ["Filtro de enfriador de transmisión"] }
+    ];
+
+    function uid(prefix) {
+      return prefix + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+    }
+
+    function token() {
+      return "car-" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+    }
+
+    function today() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function currentYear() {
+      return new Date().getFullYear();
+    }
+
+    function digitsOnly(value) {
+      return String(value || "").replace(/\D/g, "");
+    }
+
+    function cleanName(value) {
+      return String(value || "").toUpperCase().replace(/[^A-ZÁÉÍÓÚÜÑ0-9 .-]/g, "").replace(/\s+/g, " ");
+    }
+
+    function cleanPlate(value) {
+      return String(value || "").toUpperCase().replace(/[^A-Z0-9-]/g, "");
+    }
+
+    function hasLowercase(value) {
+      return /[a-záéíóúüñ]/.test(String(value || ""));
+    }
+
+    function setFieldState(input, msg, text, isError) {
+      input.classList.toggle("invalid", Boolean(isError));
+      if (msg) {
+        msg.textContent = text;
+        msg.classList.toggle("error", Boolean(isError));
+      }
+    }
+
+    function clearVehicleFieldMessages() {
+      setFieldState(els.vehiclePlate, els.vehiclePlateMsg, "", false);
+      setFieldState(els.vehicleBrand, els.vehicleBrandMsg, "", false);
+      setFieldState(els.vehicleModel, els.vehicleModelMsg, "", false);
+      setFieldState(els.vehicleYear, els.vehicleYearMsg, "", false);
+    }
+
+    function defaultData() {
+      const vehicleId = uid("veh");
+      return {
+        shop: {
+          name: "Taller QR",
+          phone: "+50370000000",
+          address: "Servicio profesional de mantenimiento",
+          logo: "",
+          qr: ""
+        },
+        vehicles: [
+          {
+            id: vehicleId,
+            token: token(),
+            plate: "P123ABC",
+            owner: "Carlos Martínez",
+            brand: "Toyota",
+            model: "Corolla",
+            year: "2020",
+            unit: "km",
+            mileage: 85000,
+            nextService: 90000,
+            phone: "+50370000000",
+            createdAt: today()
+          }
+        ],
+        services: [
+          {
+            id: uid("svc"),
+            vehicleId,
+            date: today(),
+            mileage: 85000,
+            nextService: 90000,
+            oil: "5W-30 sintético",
+            filters: ["Aceite", "Aire"],
+            details: "Cambio de aceite, revisión general y calibración."
+          }
+        ]
+      };
+    }
+
+    function loadData() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) return normalize(JSON.parse(saved));
+      } catch {}
+      return normalize(defaultData());
+    }
+
+    function normalize(value) {
+      value.shop ||= { name: "Taller QR", phone: "", address: "" };
+      value.shop.logo ||= "";
+      value.shop.qr ||= "";
+      value.vehicles ||= [];
+      value.services ||= [];
+      value.vehicles.forEach(vehicle => {
+        vehicle.id ||= uid("veh");
+        vehicle.token ||= token();
+        vehicle.unit = normalizedUnit(vehicle.unit);
+        vehicle.mileage = Number(vehicle.mileage || 0);
+        vehicle.nextService = Number(vehicle.nextService || 0);
+      });
+      value.services.forEach(service => {
+        service.unit = normalizedUnit(service.unit);
+        service.mileage = Number(service.mileage || 0);
+        service.nextService = Number(service.nextService || 0);
+        service.transmissionInterval = Number(service.transmissionInterval || 0);
+        service.transmissionNextService = Number(service.transmissionNextService || 0);
+        service.differentialInterval = Number(service.differentialInterval || 0);
+        service.differentialNextService = Number(service.differentialNextService || 0);
+      });
+      return value;
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function query() {
+      [
+        "sidebar", "sidebarBackdrop", "sidebarLogo", "topLogo", "brandName", "pageTitle", "pageSubtitle", "dashboardAlerts", "dueSoonList", "vehicleGrid", "vehicleSearch", "vehicleFilter",
+        "qrVehicle", "qrSearch", "qrOutput", "qrClientInfo", "qrClientName", "qrClientPhone", "qrImage", "qrLink", "qrMenu", "qrMenuToggle", "qrMenuPanel", "ticketShop", "ticketPlate", "ticketQr",
+        "shopName", "shopPhone", "shopAddress", "shopLogo", "shopLogoPreview", "vehicleModal", "serviceModal", "maintenanceModal",
+        "vehicleModalTitle", "vehiclePlate", "vehicleOwner", "vehicleBrand", "vehicleModel", "vehicleYear",
+        "vehiclePhone", "vehiclePlateMsg", "vehicleBrandMsg", "vehicleModelMsg", "vehicleYearMsg", "serviceSearch", "serviceVehicleResults", "maintenanceTitle", "maintenanceVehicleSummary", "serviceDate", "serviceMileage", "serviceNext", "serviceOil", "serviceOilBrand", "serviceOilUnit", "serviceOilQuantity", "serviceOilRealQuantity", "transmissionMileage", "transmissionOil", "transmissionOilBrand", "transmissionOilUnit", "transmissionOilQuantity", "transmissionOilRealQuantity", "transmissionInterval", "transmissionIntervalCustom", "transmissionIntervalCustomWrap", "transmissionNext", "frontDiffMileage", "frontDiffOil", "frontDiffOilBrand", "frontDiffOilUnit", "frontDiffOilQuantity", "frontDiffOilRealQuantity", "frontDiffInterval", "frontDiffIntervalCustom", "frontDiffIntervalCustomWrap", "frontDiffNext", "rearDiffMileage", "rearDiffOil", "rearDiffOilBrand", "rearDiffOilUnit", "rearDiffOilQuantity", "rearDiffOilRealQuantity", "rearDiffInterval", "rearDiffIntervalCustom", "rearDiffIntervalCustomWrap", "rearDiffNext", "transferMileage", "transferOil", "transferOilBrand", "transferOilUnit", "transferOilQuantity", "transferOilRealQuantity", "transferInterval", "transferIntervalCustom", "transferIntervalCustomWrap", "transferNext", "otherServiceMileage", "otherServiceNext", "otherServiceDescription", "transmissionFilter", "differentialInterval", "differentialNext", "serviceDetails", "serviceReminder", "serviceReminderDays", "serviceReminderDaysWrap",
+        "profileModal", "profileTitle", "profilePlate", "profileModel", "profileMileage", "profileServices", "profileToggleLog", "profileLogWrap", "profileMenu", "profileMenuToggle", "profileMenuPanel", "profileAddService", "profileEditVehicle", "profileOpenQr", "profileParts", "profileReminderWhatsapp", "profileDeleteVehicle",
+        "partsModal", "partsTitle", "partsBody", "serviceDetailModal", "serviceDetailTitle", "serviceDetailBody",
+        "clientShopName", "clientShopInfo", "clientLogo", "clientPlate", "clientModel", "clientMileage",
+        "clientServicesCount", "clientNext", "clientTimeNext", "clientComponentNext", "clientServices", "clientWhatsapp"
+      ].forEach(id => els[id] = document.getElementById(id));
+    }
+
+    function fillOilQuantitySelects() {
+      document.querySelectorAll("[data-oil-quantity-select]").forEach(select => {
+        const current = select.value;
+        select.innerHTML = `<option value="">Seleccionar</option>` + Array.from({ length: 20 }, (_, index) => {
+          const value = String(index + 1);
+          return `<option value="${value}">${value}</option>`;
+        }).join("");
+        if (current) select.value = current;
+      });
+    }
+
+    function unitLabel(unit) {
+      return unit === "mi" ? "mi" : "km";
+    }
+
+    function normalizedUnit(unit) {
+      return String(unit || "km").toLowerCase() === "mi" ? "mi" : "km";
+    }
+
+    function setServiceUnit(unit) {
+      const safeUnit = normalizedUnit(unit);
+      const input = document.querySelector(`input[name="serviceUnit"][value="${safeUnit}"]`);
+      if (input) input.checked = true;
+      return safeUnit;
+    }
+
+    function formatReading(value, unit) {
+      return `${Number(value || 0).toLocaleString("es-SV")} ${unitLabel(unit)}`;
+    }
+
+    function formatNumber(value) {
+      return Number(value || 0).toLocaleString("es-SV");
+    }
+
+    function normalizeFilterServices(service = {}) {
+      const statuses = {};
+      FILTER_CATALOG.forEach(filter => {
+        statuses[filter.key] = { status: "No se cambió", brand: "", code: "" };
+      });
+      if (service.filterServices && typeof service.filterServices === "object") {
+        FILTER_CATALOG.forEach(filter => {
+          const value = service.filterServices[filter.key];
+          statuses[filter.key] = typeof value === "string"
+            ? { status: value, brand: "", code: "" }
+            : { ...statuses[filter.key], ...(value || {}) };
+        });
+        return statuses;
+      }
+      const legacyFilters = service.filters || [];
+      FILTER_CATALOG.forEach(filter => {
+        if (filter.legacy.some(label => legacyFilters.includes(label))) {
+          statuses[filter.key].status = "Cambio";
+        }
+      });
+      return statuses;
+    }
+
+    function collectFilterServices() {
+      const statuses = {};
+      FILTER_CATALOG.forEach(filter => {
+        const checked = document.querySelector(`input[name="filter_${filter.key}"]:checked`);
+        const row = document.querySelector(`.filter-row[data-filter="${filter.key}"]`);
+        statuses[filter.key] = {
+          status: checked ? checked.value : "No se cambió",
+          brand: cleanName(row?.querySelector('[data-filter-extra="brand"]')?.value || "").trim(),
+          code: cleanName(row?.querySelector('[data-filter-extra="code"]')?.value || "").trim()
+        };
+      });
+      return statuses;
+    }
+
+    function setFilterServices(statuses = {}) {
+      const normalized = { ...normalizeFilterServices({ filterServices: statuses }) };
+      FILTER_CATALOG.forEach(filter => {
+        const value = normalized[filter.key]?.status || "No se cambió";
+        const input = Array.from(document.querySelectorAll(`input[name="filter_${filter.key}"]`))
+          .find(item => item.value === value) || document.querySelector(`input[name="filter_${filter.key}"][value="No se cambió"]`);
+        if (input) input.checked = true;
+        const row = document.querySelector(`.filter-row[data-filter="${filter.key}"]`);
+        if (row) {
+          row.querySelector('[data-filter-extra="brand"]').value = normalized[filter.key]?.brand || "";
+          row.querySelector('[data-filter-extra="code"]').value = normalized[filter.key]?.code || "";
+        }
+      });
+      updateFilterExtraVisibility();
+    }
+
+    function latestFilterServicesForVehicle() {
+      if (!activeMaintenanceVehicleId) return null;
+      const merged = {};
+      let found = false;
+      FILTER_CATALOG.forEach(filter => {
+        merged[filter.key] = { status: "No se cambió", brand: "", code: "" };
+      });
+      vehicleServices(activeMaintenanceVehicleId).forEach(service => {
+        if (editingServiceId && service.id === editingServiceId) return;
+        const statuses = normalizeFilterServices(service);
+        FILTER_CATALOG.forEach(filter => {
+          const current = merged[filter.key];
+          const item = statuses[filter.key] || {};
+          const hasCurrent = current.status && !current.status.startsWith("No se cambi");
+          const hasItem = item.status && !item.status.startsWith("No se cambi");
+          if (!hasCurrent && hasItem) {
+            merged[filter.key] = { ...current, ...item };
+            found = true;
+          }
+        });
+      });
+      return found ? merged : null;
+    }
+
+    function latestFilterServicesForVehicleId(vehicleId) {
+      const merged = {};
+      let found = false;
+      FILTER_CATALOG.forEach(filter => {
+        merged[filter.key] = { status: "No se cambió", brand: "", code: "" };
+      });
+      vehicleServices(vehicleId).forEach(service => {
+        const statuses = normalizeFilterServices(service);
+        FILTER_CATALOG.forEach(filter => {
+          const current = merged[filter.key];
+          const item = statuses[filter.key] || {};
+          const hasCurrent = current.status && !current.status.startsWith("No se cambi");
+          const hasItem = item.status && !item.status.startsWith("No se cambi");
+          if (!hasCurrent && hasItem) {
+            merged[filter.key] = { ...current, ...item };
+            found = true;
+          }
+        });
+      });
+      return found ? merged : null;
+    }
+
+    function formatFilterServices(service = {}) {
+      const statuses = normalizeFilterServices(service);
+      return FILTER_CATALOG
+        .map(filter => ({ label: filter.label, status: statuses[filter.key]?.status }))
+        .filter(filter => filter.status && filter.status !== "No se cambió")
+        .map(filter => `${filter.label}: ${filter.status}`)
+        .join(", ");
+    }
+
+    function filterServiceItems(service = {}) {
+      const statuses = normalizeFilterServices(service);
+      return FILTER_CATALOG
+        .map(filter => ({ label: filter.label, status: statuses[filter.key]?.status }))
+        .filter(filter => filter.status && !filter.status.startsWith("No se cambi"));
+    }
+
+    function filterServiceRowsHtml(service = {}) {
+      return filterServiceItems(service).map(filter => `
+        <div class="detail-row"><span>${escapeHtml(filter.label)}</span><strong>${escapeHtml(filter.status)}</strong></div>
+      `).join("");
+    }
+
+    function updateFilterExtraVisibility() {
+      document.querySelectorAll(".filter-row").forEach(row => {
+        const checked = row.querySelector('input[type="radio"]:checked');
+        row.classList.toggle("requires-extra", checked?.value === "Cambio");
+      });
+    }
+
+    function validateChangedFilterDetails() {
+      const details = collectFilterServices();
+      for (const filter of FILTER_CATALOG) {
+        const item = details[filter.key];
+        if (item.status === "Cambio" && (!item.brand || !item.code)) {
+          const row = document.querySelector(`.filter-row[data-filter="${filter.key}"]`);
+          const target = !item.brand
+            ? row?.querySelector('[data-filter-extra="brand"]')
+            : row?.querySelector('[data-filter-extra="code"]');
+          target?.focus();
+          alert(`Ingresá marca y código para ${filter.label}.`);
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function internalFilterRowsHtml(service = {}) {
+      const details = normalizeFilterServices(service);
+      return FILTER_CATALOG
+        .map(filter => ({ label: filter.label, ...details[filter.key] }))
+        .filter(filter => filter.status && filter.status === "Cambio")
+        .map(filter => `
+          <div class="detail-row"><span>${escapeHtml(filter.label)}</span><strong>${escapeHtml(filter.brand || "-")} · ${escapeHtml(filter.code || "-")}</strong></div>
+        `).join("");
+    }
+
+    function vehicleServices(vehicleId) {
+      return data.services
+        .map((service, index) => ({ service, index }))
+        .filter(item => item.service.vehicleId === vehicleId)
+        .sort((a, b) => {
+          const dateOrder = String(b.service.date || "").localeCompare(String(a.service.date || ""));
+          if (dateOrder) return dateOrder;
+          const createdOrder = String(b.service.createdAt || "").localeCompare(String(a.service.createdAt || ""));
+          if (createdOrder) return createdOrder;
+          return b.index - a.index;
+        })
+        .map(item => item.service);
+    }
+
+    function findVehicle(id) {
+      return data.vehicles.find(vehicle => vehicle.id === id) || null;
+    }
+
+    function findVehicleByToken(publicToken) {
+      return data.vehicles.find(vehicle => vehicle.token === publicToken) || null;
+    }
+
+    function status(vehicle) {
+      const remaining = Number(vehicle.nextService || 0) - Number(vehicle.mileage || 0);
+      if (remaining <= 0) return { key: "due", text: "Vencido", className: "bad", remaining };
+      const alertWindow = vehicle.unit === "mi" ? 900 : 1500;
+      if (remaining <= alertWindow) return { key: "soon", text: "Próximo", className: "warn", remaining };
+      return { key: "ok", text: "Al día", className: "ok", remaining };
+    }
+
+    function addMonths(dateText, months) {
+      const date = new Date(`${dateText || today()}T00:00:00`);
+      const day = date.getDate();
+      date.setMonth(date.getMonth() + Number(months || 0));
+      if (date.getDate() < day) date.setDate(0);
+      return date;
+    }
+
+    function addDays(dateText, days) {
+      const date = new Date(`${dateText || today()}T00:00:00`);
+      date.setDate(date.getDate() + Number(days || 0));
+      return date;
+    }
+
+    function daysUntil(date) {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const target = new Date(date);
+      target.setHours(0, 0, 0, 0);
+      return Math.ceil((target - start) / 86400000);
+    }
+
+    function reminderInfo(service) {
+      const months = Number(service?.reminderMonths || 0);
+      const manualDays = Number(service?.reminderDays || 0);
+      if (!service || (!months && !manualDays)) return null;
+      const dueDate = manualDays ? addDays(service.date, manualDays) : addMonths(service.date, months);
+      const days = daysUntil(dueDate);
+      return { months, manualDays, dueDate, days };
+    }
+
+    function clientStatus(vehicle, latestService) {
+      const timeInfo = reminderInfo(latestService);
+      if (timeInfo?.days < 0) return { key: "due", text: "Mantenimiento urgente", className: "bad", timeInfo };
+      if (timeInfo?.days <= 15) return { key: "soon", text: "Recordatorio próximo", className: "warn", timeInfo };
+      const odometerStatus = status(vehicle);
+      return { ...odometerStatus, timeInfo };
+    }
+
+    function internalReminderStatus(vehicle) {
+      const alerts = reminderAlertsForVehicle(vehicle);
+      const due = alerts.find(alert => alert.timeInfo.days < 0);
+      if (due) return { key: "due", text: "Vencido", className: "bad", timeInfo: due.timeInfo };
+      const soon = alerts.find(alert => alert.timeInfo.days <= 15);
+      if (soon) return { key: "soon", text: "Próximo", className: "warn", timeInfo: soon.timeInfo };
+      return { key: "ok", text: "Sin alerta", className: "ok", timeInfo: null };
+    }
+
+    function reminderClientText(timeInfo) {
+      if (!timeInfo) return "Próximo servicio según tiempo: no programado.";
+      return `Próximo servicio según tiempo: ${timeInfo.days} días restantes.`;
+    }
+
+    function suggestedNextService() {
+      const mileage = Number(digitsOnly(els.serviceMileage.value));
+      if (!mileage) return;
+      const unit = document.querySelector('input[name="serviceUnit"]:checked')?.value || "km";
+      const increment = unit === "mi" ? 3000 : 5000;
+      els.serviceNext.value = String(mileage + increment);
+      calculateComponentNextServices(false);
+    }
+
+    function longServiceIntervals(unit) {
+      return unit === "mi"
+        ? [9000, 12000, 15000, 18000]
+        : [15000, 20000, 25000, 30000];
+    }
+
+    function renderLongIntervalSelect(select, unit, selectedValue) {
+      if (!select) return;
+      const options = longServiceIntervals(unit);
+      const selected = Number(selectedValue) || options[1];
+      const isPreset = options.includes(selected);
+      select.innerHTML = options.map(value => `<option value="${value}"${value === selected && isPreset ? " selected" : ""}>${formatNumber(value)} ${unitLabel(unit)}</option>`).join("") + `<option value="other"${selectedValue === "other" || !isPreset ? " selected" : ""}>Otro intervalo</option>`;
+    }
+
+    function updateLongIntervalOptions() {
+      renderLongIntervalSelect(els.transmissionInterval, selectedUnit("transmissionUnit"), els.transmissionInterval?.value);
+      renderLongIntervalSelect(els.frontDiffInterval, selectedUnit("frontDiffUnit"), els.frontDiffInterval?.value);
+      renderLongIntervalSelect(els.rearDiffInterval, selectedUnit("rearDiffUnit"), els.rearDiffInterval?.value);
+      renderLongIntervalSelect(els.transferInterval, selectedUnit("transferUnit"), els.transferInterval?.value);
+      updateIntervalCustomVisibility();
+    }
+
+    function selectedUnit(name) {
+      return normalizedUnit(document.querySelector(`input[name="${name}"]:checked`)?.value);
+    }
+
+    function updateIntervalCustomVisibility() {
+      [
+        { select: els.transmissionInterval, wrap: els.transmissionIntervalCustomWrap, input: els.transmissionIntervalCustom },
+        { select: els.frontDiffInterval, wrap: els.frontDiffIntervalCustomWrap, input: els.frontDiffIntervalCustom },
+        { select: els.rearDiffInterval, wrap: els.rearDiffIntervalCustomWrap, input: els.rearDiffIntervalCustom },
+        { select: els.transferInterval, wrap: els.transferIntervalCustomWrap, input: els.transferIntervalCustom }
+      ].forEach(item => {
+        const isOther = item.select?.value === "other";
+        item.wrap?.classList.toggle("hidden", !isOther);
+        if (!isOther && item.input) item.input.value = "";
+      });
+    }
+
+    function selectedInterval(select, customInput) {
+      const custom = Number(digitsOnly(customInput?.value));
+      if (select?.value === "other") return custom;
+      return Number(select?.value || 0);
+    }
+
+    function calculateComponentNextServices(force = false) {
+      const items = [
+        { mileage: els.transmissionMileage, oil: els.transmissionOil, interval: els.transmissionInterval, custom: els.transmissionIntervalCustom, next: els.transmissionNext },
+        { mileage: els.frontDiffMileage, oil: els.frontDiffOil, interval: els.frontDiffInterval, custom: els.frontDiffIntervalCustom, next: els.frontDiffNext },
+        { mileage: els.rearDiffMileage, oil: els.rearDiffOil, interval: els.rearDiffInterval, custom: els.rearDiffIntervalCustom, next: els.rearDiffNext },
+        { mileage: els.transferMileage, oil: els.transferOil, interval: els.transferInterval, custom: els.transferIntervalCustom, next: els.transferNext }
+      ];
+      items.forEach(item => {
+        const mileage = Number(digitsOnly(item.mileage?.value));
+        const interval = selectedInterval(item.interval, item.custom);
+        if (mileage && interval && item.oil?.value.trim() && (force || !item.next.value.trim())) {
+          item.next.value = String(mileage + interval);
+        }
+      });
+    }
+
+    function selectedServiceSections() {
+      const sections = Array.from(document.querySelectorAll("[data-service-section-toggle]:checked")).map(input => input.dataset.serviceSectionToggle);
+      if (document.getElementById("otherServiceSection")?.classList.contains("open")) sections.push("other");
+      return sections;
+    }
+
+    function setSelectedServiceSections(sections = []) {
+      document.querySelectorAll("[data-service-section-toggle]").forEach(input => {
+        input.checked = sections.includes(input.dataset.serviceSectionToggle);
+      });
+      updateServiceSections();
+      setOtherServiceOpen(sections.includes("other"));
+    }
+
+    function setOtherServiceOpen(isOpen) {
+      const toggle = document.getElementById("otherServiceToggle");
+      const section = document.getElementById("otherServiceSection");
+      if (!toggle || !section) return;
+      section.classList.toggle("open", Boolean(isOpen));
+      toggle.classList.toggle("active", Boolean(isOpen));
+    }
+
+    function updateServiceSections() {
+      const selected = selectedServiceSections();
+      document.querySelectorAll(".service-type-row").forEach(row => {
+        const input = row.querySelector("[data-service-section-toggle]");
+        const key = input?.dataset.serviceSectionToggle;
+        const section = key ? document.querySelector(`[data-service-section="${key}"]`) : null;
+        if (section && section.previousElementSibling !== row) {
+          row.after(section);
+        }
+        row.classList.toggle("active", Boolean(input?.checked));
+      });
+      document.querySelectorAll("[data-service-section]").forEach(section => {
+        section.classList.toggle("open", selected.includes(section.dataset.serviceSection));
+      });
+    }
+
+    function updateReminderDaysVisibility() {
+      const isManual = els.serviceReminder?.value === "manual";
+      els.serviceReminderDaysWrap?.classList.toggle("hidden", !isManual);
+      if (!isManual && els.serviceReminderDays) els.serviceReminderDays.value = "";
+    }
+
+    function latestServiceMatching(type) {
+      if (!activeMaintenanceVehicleId) return null;
+      return vehicleServices(activeMaintenanceVehicleId).find(service => {
+        if (editingServiceId && service.id === editingServiceId) return false;
+        if (type === "motor") return Boolean(service.oil);
+        if (type === "transmission") return Boolean(service.transmissionOil);
+        if (type === "frontDiff") return Boolean(service.frontDiffOil);
+        if (type === "rearDiff") return Boolean(service.rearDiffOil);
+        if (type === "transfer") return Boolean(service.transferOil);
+        if (type === "filters") return Boolean(formatFilterServices(service));
+        return false;
+      }) || null;
+    }
+
+    function autofillServiceSection(type) {
+      if (type === "filters") {
+        const previousFilters = latestFilterServicesForVehicle();
+        if (!previousFilters) {
+          alert("No se ha realizado ningún mantenimiento anterior.");
+          return;
+        }
+        setFilterServices(previousFilters);
+        return;
+      }
+      const previous = latestServiceMatching(type);
+      if (!previous) {
+        alert("No se ha realizado ningún mantenimiento anterior.");
+        return;
+      }
+      if (type === "motor") {
+        els.serviceOil.value = previous.oil || "";
+        els.serviceOilBrand.value = previous.oilBrand || "";
+        els.serviceOilUnit.value = previous.oilUnit || "LITROS";
+        els.serviceOilQuantity.value = previous.oilQuantity || "";
+        els.serviceOilRealQuantity.value = previous.oilRealQuantity || "";
+      } else if (type === "transmission") {
+        els.transmissionOil.value = previous.transmissionOil || "";
+        els.transmissionOilBrand.value = previous.transmissionOilBrand || "";
+        els.transmissionOilUnit.value = previous.transmissionOilUnit || "LITROS";
+        els.transmissionOilQuantity.value = previous.transmissionOilQuantity || "";
+        els.transmissionOilRealQuantity.value = previous.transmissionOilRealQuantity || "";
+        renderLongIntervalSelect(els.transmissionInterval, selectedUnit("transmissionUnit"), previous.transmissionIntervalCustom ? "other" : previous.transmissionInterval);
+        els.transmissionIntervalCustom.value = previous.transmissionIntervalCustom || "";
+        updateIntervalCustomVisibility();
+      } else if (type === "frontDiff") {
+        els.frontDiffOil.value = previous.frontDiffOil || "";
+        els.frontDiffOilBrand.value = previous.frontDiffOilBrand || "";
+        els.frontDiffOilUnit.value = previous.frontDiffOilUnit || "LITROS";
+        els.frontDiffOilQuantity.value = previous.frontDiffOilQuantity || "";
+        els.frontDiffOilRealQuantity.value = previous.frontDiffOilRealQuantity || "";
+        renderLongIntervalSelect(els.frontDiffInterval, selectedUnit("frontDiffUnit"), previous.frontDiffIntervalCustom ? "other" : previous.frontDiffInterval);
+        els.frontDiffIntervalCustom.value = previous.frontDiffIntervalCustom || "";
+        updateIntervalCustomVisibility();
+      } else if (type === "rearDiff") {
+        els.rearDiffOil.value = previous.rearDiffOil || "";
+        els.rearDiffOilBrand.value = previous.rearDiffOilBrand || "";
+        els.rearDiffOilUnit.value = previous.rearDiffOilUnit || "LITROS";
+        els.rearDiffOilQuantity.value = previous.rearDiffOilQuantity || "";
+        els.rearDiffOilRealQuantity.value = previous.rearDiffOilRealQuantity || "";
+        renderLongIntervalSelect(els.rearDiffInterval, selectedUnit("rearDiffUnit"), previous.rearDiffIntervalCustom ? "other" : previous.rearDiffInterval);
+        els.rearDiffIntervalCustom.value = previous.rearDiffIntervalCustom || "";
+        updateIntervalCustomVisibility();
+      } else if (type === "transfer") {
+        els.transferOil.value = previous.transferOil || "";
+        els.transferOilBrand.value = previous.transferOilBrand || "";
+        els.transferOilUnit.value = previous.transferOilUnit || "LITROS";
+        els.transferOilQuantity.value = previous.transferOilQuantity || "";
+        els.transferOilRealQuantity.value = previous.transferOilRealQuantity || "";
+        renderLongIntervalSelect(els.transferInterval, selectedUnit("transferUnit"), previous.transferIntervalCustom ? "other" : previous.transferInterval);
+        els.transferIntervalCustom.value = previous.transferIntervalCustom || "";
+        updateIntervalCustomVisibility();
+      }
+      calculateComponentNextServices(true);
+    }
+
+    function componentRowFromService(key, label, service, vehicle) {
+      if (!service) return null;
+      const unit = normalizedUnit(service.unit || vehicle.unit);
+      if (key === "motor" && service.oil && service.nextService) {
+        return { key, label, service, next: service.nextService, unit, interval: service.nextService - service.mileage };
+      }
+      if (key === "transmission" && service.transmissionNextService) {
+        return { key, label, service, next: service.transmissionNextService, unit: normalizedUnit(service.transmissionUnit || unit), interval: service.transmissionInterval };
+      }
+      if (key === "frontDiff" && service.frontDiffNextService) {
+        return { key, label, service, next: service.frontDiffNextService, unit: normalizedUnit(service.frontDiffUnit || unit), interval: service.frontDiffInterval };
+      }
+      if (key === "rearDiff" && service.rearDiffNextService) {
+        return { key, label, service, next: service.rearDiffNextService, unit: normalizedUnit(service.rearDiffUnit || unit), interval: service.rearDiffInterval };
+      }
+      if (key === "differential" && !service.frontDiffNextService && !service.rearDiffNextService && service.differentialNextService) {
+        return { key, label, service, next: service.differentialNextService, unit, interval: service.differentialInterval };
+      }
+      if (key === "transfer" && service.transferNextService) {
+        return { key, label, service, next: service.transferNextService, unit: normalizedUnit(service.transferUnit || unit), interval: service.transferInterval };
+      }
+      return null;
+    }
+
+    function componentReminderRows(vehicle, service = null) {
+      if (!vehicle) return [];
+      const services = service ? [service] : vehicleServices(vehicle.id);
+      const definitions = [
+        ["motor", "Motor"],
+        ["transmission", "Transmisión"],
+        ["frontDiff", "Diferencial delantero"],
+        ["rearDiff", "Diferencial trasero"],
+        ["differential", "Diferenciales"],
+        ["transfer", "Transferencia"]
+      ];
+      return definitions.map(([key, label]) => {
+        const source = services.find(item => componentRowFromService(key, label, item, vehicle));
+        return componentRowFromService(key, label, source, vehicle);
+      }).filter(Boolean);
+    }
+
+    function componentDueVehicles() {
+      const thresholds = { km: 1500, mi: 900 };
+      return data.vehicles.flatMap(vehicle => {
+        const latest = vehicleServices(vehicle.id)[0];
+        if (!latest) return [];
+        const current = Number(latest.mileage || vehicle.mileage || 0);
+        return componentReminderRows(vehicle).filter(row => row.key === "motor").map(row => ({
+          vehicle,
+          service: row.service,
+          row,
+          remaining: Number(row.next || 0) - current
+        })).filter(item => item.row.next && item.remaining <= (thresholds[item.row.unit] || 1500));
+      });
+    }
+
+    function componentStatus(vehicle, service = null) {
+      const thresholds = { km: 1500, mi: 900 };
+      const latest = service || vehicleServices(vehicle.id)[0];
+      if (!latest) return null;
+      const current = Number(latest.mileage || vehicle.mileage || 0);
+      const rows = componentReminderRows(vehicle).filter(row => row.key === "motor");
+      const overdue = rows.find(row => row.next && Number(row.next) - current < 0);
+      if (overdue) return { key: "due", text: "Mantenimiento urgente", className: "bad" };
+      const soon = rows.find(row => row.next && Number(row.next) - current <= (thresholds[row.unit] || 1500));
+      if (soon) return { key: "soon", text: "Recordatorio próximo", className: "warn" };
+      return null;
+    }
+
+    function componentReminderText(vehicle, service = null) {
+      const rows = componentReminderRows(vehicle, service).filter(row => row.key !== "motor");
+      if (!rows.length) return "";
+      return rows.map(row => {
+        return `Próximo servicio de ${row.label.toLowerCase()}: ${formatReading(row.next, row.unit)}.`;
+      }).join(" ");
+    }
+
+    function clientReminderNoticeRows(vehicle) {
+      const componentRows = componentReminderRows(vehicle).filter(row => row.key !== "motor").map(row => ({
+        label: `Próximo servicio de ${row.label.toLowerCase()}`,
+        value: formatReading(row.next, row.unit)
+      }));
+      const otherService = vehicleServices(vehicle.id).find(service => service.otherServiceNext);
+      const otherRows = otherService ? [{
+        label: "Próximo servicio adicional",
+        value: formatReading(otherService.otherServiceNext, otherService.otherServiceUnit || otherService.unit || vehicle.unit)
+      }] : [];
+      return [...componentRows, ...otherRows];
+    }
+
+    function serviceCardSummary(service, vehicle) {
+      const componentRows = componentReminderRows(vehicle, service);
+      const nextRow = service.nextService
+        ? { label: "Motor", next: service.nextService, unit: service.unit || vehicle.unit }
+        : componentRows[0];
+      const nextText = nextRow?.next
+        ? formatReading(nextRow.next, nextRow.unit || service.unit || vehicle.unit)
+        : service.otherServiceNext
+          ? formatReading(service.otherServiceNext, service.otherServiceUnit || service.unit || vehicle.unit)
+          : "-";
+      const nextLabel = nextRow?.label ? `Próximo ${nextRow.label.toLowerCase()}` : service.otherServiceNext ? "Próximo servicio" : "Próximo";
+      const detail = service.oil
+        ? { label: "Aceite motor", value: service.oil }
+        : service.transmissionOil
+          ? { label: "Aceite transmisión", value: service.transmissionOil }
+          : service.frontDiffOil
+            ? { label: "Aceite diferencial delantero", value: service.frontDiffOil }
+            : service.rearDiffOil
+              ? { label: "Aceite diferencial trasero", value: service.rearDiffOil }
+              : service.transferOil
+                ? { label: "Aceite transferencia", value: service.transferOil }
+                : service.otherServiceDescription
+                  ? { label: "Servicio", value: service.otherServiceDescription }
+                  : { label: "Servicio", value: "-" };
+      return { nextText, nextLabel, detailLabel: detail.label, detailValue: detail.value };
+    }
+
+    function reminderAlertsForVehicle(vehicle) {
+      return vehicleServices(vehicle.id)
+        .map(service => {
+          const timeInfo = reminderInfo(service);
+          if (!timeInfo || timeInfo.days > 15) return null;
+          const summary = serviceCardSummary(service, vehicle);
+          return { vehicle, service, timeInfo, summary };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.timeInfo.days - b.timeInfo.days);
+    }
+
+    function reminderLabel(alert) {
+      const base = alert.summary.detailLabel || "Mantenimiento";
+      const value = alert.summary.detailValue && alert.summary.detailValue !== "-" ? ` · ${alert.summary.detailValue}` : "";
+      return `${base}${value}`;
+    }
+
+    function maintenanceReminderMessage(vehicle, timeInfo, summary = null) {
+      const name = vehicle.owner || "CLIENTE";
+      const vehicleLabel = `${vehicle.brand} ${vehicle.model} PLACA ${vehicle.plate}`;
+      const timeText = timeInfo
+        ? (timeInfo.days < 0 ? `mantenimiento por tiempo vencido por ${Math.abs(timeInfo.days)} días` : `mantenimiento por tiempo próximo a vencer en ${timeInfo.days} días`)
+        : "";
+      const alertText = timeText || `un mantenimiento próximo según nuestra bitácora`;
+      const serviceText = summary?.detailLabel ? ` (${summary.detailLabel}${summary.detailValue && summary.detailValue !== "-" ? `: ${summary.detailValue}` : ""})` : "";
+      return `HOLA ${name}, TE SALUDA AUTOMOTRIZ MEDINA SV. QUEREMOS AVISARTE QUE EL MANTENIMIENTO DE TU VEHÍCULO ${vehicleLabel}${serviceText} ESTÁ PRÓXIMO A REALIZARSE. POR FAVOR VERIFICA EL ODÓMETRO Y REVISA TU BITÁCORA EN EL SIGUIENTE ENLACE PARA AGENDAR TU PRÓXIMO SERVICIO: ${publicUrl(vehicle)}. ESTADO: ${alertText}.`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char]));
+    }
+
+    function publicUrl(vehicle) {
+      const base = location.href.split("?")[0].split("#")[0];
+      return `${base}?vehiculo=${encodeURIComponent(vehicle.token)}`;
+    }
+
+    function qrUrl(vehicle) {
+      return `https://api.qrserver.com/v1/create-qr-code/?size=520x520&margin=16&data=${encodeURIComponent(publicUrl(vehicle))}`;
+    }
+
+    function filterVehicles(term) {
+      const needle = String(term || "").toLowerCase().trim();
+      return data.vehicles.filter(vehicle => {
+        const joined = `${vehicle.plate} ${vehicle.owner} ${vehicle.phone} ${vehicle.brand} ${vehicle.model} ${vehicle.year}`.toLowerCase();
+        return !needle || joined.includes(needle);
+      });
+    }
+
+    function render() {
+      renderBrand();
+      renderDashboardAlerts();
+      renderVehicles();
+      renderServices();
+      renderSelects();
+      renderQr();
+      renderSettings();
+    }
+
+    function renderBrand() {
+      els.brandName.textContent = data.shop.name || "Taller QR";
+      els.sidebarLogo.innerHTML = data.shop.logo
+        ? `<img src="${data.shop.logo}" alt="Logo del taller">`
+        : "AM";
+      els.topLogo.src = data.shop.logo || fallbackPhoto;
+    }
+
+    function timeDueVehicles() {
+      return data.vehicles.flatMap(vehicle => reminderAlertsForVehicle(vehicle));
+    }
+
+    function renderDashboardAlerts() {
+      if (!els.dueSoonList) return;
+      const alerts = timeDueVehicles();
+      els.dashboardAlerts.classList.toggle("hidden", alerts.length === 0);
+      els.dueSoonList.innerHTML = alerts.length ? alerts.map(({ vehicle, service, timeInfo, summary }) => {
+        const isBad = timeInfo.days < 0;
+        const badgeText = isBad ? "Vencido" : "Próximo";
+        const detailText = isBad
+          ? `Recordatorio interno por tiempo: vencido por ${Math.abs(timeInfo.days)} días.`
+          : `Recordatorio interno por tiempo: faltan ${timeInfo.days} días.`;
+        return `
+        <div class="service-card" style="width:100%; text-align:left">
+          <div class="service-top">
+            <strong>${escapeHtml(vehicle.brand)} ${escapeHtml(vehicle.model)}</strong>
+            <span class="badge ${isBad ? "bad" : "warn"}">${badgeText}</span>
+          </div>
+          <p style="margin:0; color:var(--gray-700)">Placa ${escapeHtml(vehicle.plate)} · Cliente ${escapeHtml(vehicle.owner || "SIN NOMBRE")}</p>
+          <p style="margin:8px 0 0; color:var(--gray-700)">${escapeHtml(reminderLabel({ summary }))}</p>
+          <p style="margin:8px 0 0; color:var(--gray-500)">${detailText}</p>
+          <div class="actions" style="margin-top:12px">
+            <button class="btn soft" data-action="profile" data-id="${vehicle.id}">Ver ficha</button>
+            <button class="btn whatsapp-btn" data-action="send-reminder" data-id="${vehicle.id}" data-service-id="${service.id}">Enviar WhatsApp</button>
+            <button class="btn danger-btn" data-action="dismiss-reminder" data-id="${vehicle.id}" data-service-id="${service.id}">Eliminar aviso</button>
+          </div>
+        </div>
+      `}).join("") : "";
+    }
+
+    function renderVehicleCard(vehicle) {
+      const alerts = reminderAlertsForVehicle(vehicle);
+      return `
+        <article class="card vehicle-card" data-action="profile" data-id="${vehicle.id}" tabindex="0" role="button">
+          <div class="vehicle-content">
+            <div class="plate-row">
+              <div>
+                <h3 class="plate">${escapeHtml(vehicle.brand)} ${escapeHtml(vehicle.model)}</h3>
+                <p class="model">${escapeHtml(vehicle.year)} · Placa ${escapeHtml(vehicle.plate)}</p>
+              </div>
+            </div>
+            <p style="margin:0; color:var(--gray-700)">Cliente: ${escapeHtml(vehicle.owner || "Sin nombre")}</p>
+            ${alerts.length ? `<div style="display:grid; gap:6px; margin-top:12px">
+              ${alerts.map(alert => {
+                const daysText = alert.timeInfo.days < 0
+                  ? `Vencido por ${Math.abs(alert.timeInfo.days)} días`
+                  : `Faltan ${alert.timeInfo.days} días`;
+                return `<span class="badge ${alert.timeInfo.days < 0 ? "bad" : "warn"}">${escapeHtml(reminderLabel(alert))}: ${daysText}</span>`;
+              }).join("")}
+            </div>` : ""}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderVehicles() {
+      const term = (els.vehicleSearch.value || "").toLowerCase().trim();
+      const filter = els.vehicleFilter.value || "all";
+      const vehicles = data.vehicles.filter(vehicle => {
+        const joined = `${vehicle.plate} ${vehicle.owner} ${vehicle.brand} ${vehicle.model}`.toLowerCase();
+        const matchesTerm = !term || joined.includes(term);
+        const matchesFilter = filter === "all" || internalReminderStatus(vehicle).key === filter;
+        return matchesTerm && matchesFilter;
+      });
+      const html = vehicles.length ? vehicles.map(renderVehicleCard).join("") : `<div class="empty">No hay vehículos con esos filtros.</div>`;
+      els.vehicleGrid.innerHTML = html;
+    }
+
+    function renderServices() {
+      return;
+    }
+
+    function renderServiceVehicleResults() {
+      const vehicles = filterVehicles(els.serviceSearch?.value);
+      els.serviceVehicleResults.innerHTML = vehicles.length ? vehicles.map(vehicle => {
+        const vehicleStatus = internalReminderStatus(vehicle);
+        return `
+          <button class="service-card" data-action="select-service-vehicle" data-id="${vehicle.id}" style="width:100%; text-align:left">
+            <div class="service-top">
+              <strong>${escapeHtml(vehicle.brand)} ${escapeHtml(vehicle.model)}</strong>
+              <span class="badge ${vehicleStatus.className}">${vehicleStatus.text}</span>
+            </div>
+            <p style="margin:0; color:var(--gray-700)">Año ${escapeHtml(vehicle.year)} · Placa ${escapeHtml(vehicle.plate)} · ${formatReading(vehicle.mileage, vehicle.unit)}</p>
+            <p style="margin:8px 0 0; color:var(--gray-500)">Cliente: ${escapeHtml(vehicle.owner || "Sin nombre")}</p>
+          </button>
+        `;
+      }).join("") : `<div class="empty">No hay vehículos con esa búsqueda.</div>`;
+    }
+
+    function renderSelects() {
+      const qrVehicles = filterVehicles(els.qrSearch?.value);
+      const qrOptions = qrVehicles.map(vehicle => {
+        const ownerText = vehicle.owner ? ` - ${vehicle.owner}` : "";
+        return `<option value="${vehicle.id}">${escapeHtml(vehicle.plate)} - ${escapeHtml(vehicle.brand)} ${escapeHtml(vehicle.model)} ${escapeHtml(vehicle.year)}${escapeHtml(ownerText)}</option>`;
+      }).join("");
+      const currentQr = els.qrVehicle.value;
+      els.qrVehicle.innerHTML = `<option value="">Selecciona el vehículo</option>${qrOptions}`;
+      if (currentQr && qrVehicles.some(vehicle => vehicle.id === currentQr)) els.qrVehicle.value = currentQr;
+      else if (String(els.qrSearch?.value || "").trim() && qrVehicles.length === 1) els.qrVehicle.value = qrVehicles[0].id;
+    }
+
+    function selectFirstQrSearchResult() {
+      const qrVehicles = filterVehicles(els.qrSearch?.value);
+      if (!String(els.qrSearch?.value || "").trim() || !qrVehicles.length) return false;
+      els.qrVehicle.value = qrVehicles[0].id;
+      renderQr();
+      return true;
+    }
+
+    function renderQr() {
+      const vehicle = findVehicle(els.qrVehicle.value);
+      if (!vehicle) {
+        els.qrOutput.classList.add("hidden");
+        els.qrImage.removeAttribute("src");
+        els.ticketQr.removeAttribute("src");
+        els.qrLink.textContent = "Seleccioná un vehículo para generar su QR.";
+        els.qrClientName.value = "";
+        els.qrClientPhone.value = "";
+        els.qrClientInfo.classList.add("hidden");
+        els.ticketPlate.textContent = "---";
+        return;
+      }
+      els.qrVehicle.value = vehicle.id;
+      els.qrOutput.classList.remove("hidden");
+      els.qrImage.src = qrUrl(vehicle);
+      els.qrLink.textContent = publicUrl(vehicle);
+      els.qrClientName.value = vehicle.owner || "";
+      els.qrClientPhone.value = vehicle.phone || "";
+      els.qrClientInfo.classList.remove("hidden");
+      els.ticketShop.textContent = data.shop.name || "Taller QR";
+      els.ticketPlate.textContent = vehicle.plate;
+      els.ticketQr.src = qrUrl(vehicle);
+    }
+
+    function renderSettings() {
+      els.shopName.value = data.shop.name || "";
+      els.shopPhone.value = data.shop.phone || "";
+      els.shopAddress.value = data.shop.address || "";
+      els.shopLogoPreview.src = data.shop.logo || fallbackPhoto;
+    }
+
+    function switchView(view) {
+      activeView = view;
+      document.querySelectorAll(".view").forEach(section => section.classList.add("hidden"));
+      document.getElementById(`view-${view}`).classList.remove("hidden");
+      document.querySelectorAll("[data-view]").forEach(button => button.classList.toggle("active", button.dataset.view === view));
+      const labels = {
+        dashboard: ["Dashboard", 'Automotriz Medina SV<span class="subtitle">Control de mantenimiento</span>'],
+        vehicles: ["Vehículos", "Creá, actualizá y consultá perfiles de vehículos."],
+        services: ["Servicios", "Historial completo de mantenimientos registrados."],
+        qr: ["QR de cliente", ""],
+        settings: ["Mi taller", "Datos que verá el cliente en su ficha."]
+      };
+      els.pageTitle.textContent = labels[view][0];
+      els.pageSubtitle.innerHTML = labels[view][1];
+      document.body.classList.toggle("dashboard-mode", view === "dashboard");
+      closeSidebar();
+      render();
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add("open");
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("open");
+    }
+
+    function openSidebar() {
+      els.sidebar.classList.add("open");
+      els.sidebarBackdrop.classList.add("open");
+      if (location.hash !== "#menu") history.pushState({ menuOpen: true }, "", "#menu");
+    }
+
+    function closeSidebar(options = {}) {
+      const wasOpen = els.sidebar?.classList.contains("open");
+      els.sidebar?.classList.remove("open");
+      els.sidebarBackdrop?.classList.remove("open");
+      if (wasOpen && options.back !== false && location.hash === "#menu") history.back();
+    }
+
+    function resetVehicleForm() {
+      editingVehicleId = null;
+      els.vehicleModalTitle.textContent = "Nuevo vehículo";
+      ["vehiclePlate", "vehicleOwner", "vehicleBrand", "vehicleModel", "vehicleYear", "vehiclePhone"].forEach(id => els[id].value = "");
+      clearVehicleFieldMessages();
+    }
+
+    function openVehicleForm(vehicleId) {
+      resetVehicleForm();
+      const vehicle = findVehicle(vehicleId);
+      if (vehicle) {
+        editingVehicleId = vehicle.id;
+        els.vehicleModalTitle.textContent = "Editar vehículo";
+        els.vehiclePlate.value = cleanPlate(vehicle.plate || "");
+        els.vehicleOwner.value = vehicle.owner || "";
+        els.vehicleBrand.value = cleanName(vehicle.brand || "").trim();
+        els.vehicleModel.value = cleanName(vehicle.model || "").trim();
+        els.vehicleYear.value = vehicle.year || "";
+        els.vehiclePhone.value = vehicle.phone || "";
+      }
+      openModal("vehicleModal");
+    }
+
+    function saveVehicle() {
+      clearVehicleFieldMessages();
+      const plate = cleanPlate(els.vehiclePlate.value);
+      const year = Number(digitsOnly(els.vehicleYear.value));
+      const maxYear = currentYear();
+      if (!plate) {
+        setFieldState(els.vehiclePlate, els.vehiclePlateMsg, "La placa es obligatoria. Solo se permiten mayúsculas, números y guion.", true);
+        els.vehiclePlate.focus();
+        return;
+      }
+      const duplicate = data.vehicles.some(vehicle => vehicle.plate === plate && vehicle.id !== editingVehicleId);
+      if (duplicate) {
+        setFieldState(els.vehiclePlate, els.vehiclePlateMsg, "Esa placa ya está registrada. No se pueden repetir placas.", true);
+        els.vehiclePlate.focus();
+        return;
+      }
+      if (!els.vehicleBrand.value.trim()) {
+        setFieldState(els.vehicleBrand, els.vehicleBrandMsg, "La marca es obligatoria y debe escribirse en mayúsculas.", true);
+        els.vehicleBrand.focus();
+        return;
+      }
+      if (!els.vehicleModel.value.trim()) {
+        setFieldState(els.vehicleModel, els.vehicleModelMsg, "El modelo es obligatorio y debe escribirse en mayúsculas.", true);
+        els.vehicleModel.focus();
+        return;
+      }
+      if (year < 1970 || year > maxYear) {
+        setFieldState(els.vehicleYear, els.vehicleYearMsg, `El año debe ser numérico y estar entre 1970 y ${maxYear}.`, true);
+        els.vehicleYear.focus();
+        return;
+      }
+      const existing = editingVehicleId ? findVehicle(editingVehicleId) : null;
+      const vehicle = existing || {
+        id: uid("veh"),
+        token: token(),
+        createdAt: today()
+      };
+      vehicle.plate = plate;
+      vehicle.owner = cleanName(els.vehicleOwner.value).trim();
+      vehicle.brand = cleanName(els.vehicleBrand.value).trim();
+      vehicle.model = cleanName(els.vehicleModel.value).trim();
+      vehicle.year = String(year);
+      vehicle.unit ||= "km";
+      vehicle.mileage ||= 0;
+      vehicle.nextService ||= 0;
+      vehicle.phone = els.vehiclePhone.value.trim();
+      if (!existing) data.vehicles.push(vehicle);
+      saveData();
+      closeModal("vehicleModal");
+      render();
+      if (existing) {
+        switchView("vehicles");
+      } else {
+        openMaintenanceForm(vehicle.id);
+      }
+    }
+
+    function resetServiceForm(vehicleId) {
+      editingServiceId = null;
+      activeMaintenanceVehicleId = vehicleId || "";
+      const vehicle = findVehicle(activeMaintenanceVehicleId);
+      const lastService = vehicle ? vehicleServices(vehicle.id)[0] : null;
+      const previousReading = lastService ? lastService.mileage : vehicle?.mileage;
+      const previousNext = lastService ? lastService.nextService : vehicle?.nextService;
+      const previousUnit = normalizedUnit(lastService?.unit || vehicle?.unit);
+      const previousNextText = previousNext ? formatReading(previousNext, previousUnit) : "sin programar";
+      const previousComponents = lastService ? componentReminderText(vehicle) : "";
+      els.maintenanceTitle.textContent = vehicle ? `Nuevo mantenimiento · ${vehicle.brand} ${vehicle.model}` : "Nuevo mantenimiento";
+      els.maintenanceVehicleSummary.textContent = vehicle
+        ? `${vehicle.brand} ${vehicle.model} ${vehicle.year} · Placa ${vehicle.plate} · Lectura del mantenimiento anterior ${formatReading(previousReading, previousUnit)} · Motor programado ${previousNextText}${previousComponents ? " · " + previousComponents : ""}`
+        : "";
+      els.serviceDate.value = today();
+      els.serviceMileage.value = "";
+      els.serviceNext.value = "";
+      els.serviceOil.value = "";
+      els.serviceOilBrand.value = "";
+      els.serviceOilUnit.value = "LITROS";
+      els.serviceOilQuantity.value = "";
+      els.serviceOilRealQuantity.value = "";
+      els.transmissionMileage.value = "";
+      els.transmissionOil.value = "";
+      els.transmissionOilBrand.value = "";
+      els.transmissionOilUnit.value = "LITROS";
+      els.transmissionOilQuantity.value = "";
+      els.transmissionOilRealQuantity.value = "";
+      updateLongIntervalOptions();
+      els.transmissionNext.value = "";
+      els.transmissionIntervalCustom.value = "";
+      els.frontDiffMileage.value = "";
+      els.frontDiffOil.value = "";
+      els.frontDiffOilBrand.value = "";
+      els.frontDiffOilUnit.value = "LITROS";
+      els.frontDiffOilQuantity.value = "";
+      els.frontDiffOilRealQuantity.value = "";
+      els.frontDiffNext.value = "";
+      els.frontDiffIntervalCustom.value = "";
+      els.rearDiffMileage.value = "";
+      els.rearDiffOil.value = "";
+      els.rearDiffOilBrand.value = "";
+      els.rearDiffOilUnit.value = "LITROS";
+      els.rearDiffOilQuantity.value = "";
+      els.rearDiffOilRealQuantity.value = "";
+      els.rearDiffNext.value = "";
+      els.rearDiffIntervalCustom.value = "";
+      els.transferMileage.value = "";
+      els.transferOil.value = "";
+      els.transferOilBrand.value = "";
+      els.transferOilUnit.value = "LITROS";
+      els.transferOilQuantity.value = "";
+      els.transferOilRealQuantity.value = "";
+      els.transferNext.value = "";
+      els.transferIntervalCustom.value = "";
+      els.otherServiceMileage.value = "";
+      els.otherServiceNext.value = "";
+      els.otherServiceDescription.value = "";
+      els.serviceDetails.value = "";
+      els.serviceReminder.value = "";
+      els.serviceReminderDays.value = "";
+      updateReminderDaysVisibility();
+      setServiceUnit(vehicle?.unit);
+      updateLongIntervalOptions();
+      setSelectedServiceSections([]);
+      setOtherServiceOpen(false);
+      setFilterServices();
+    }
+
+    function openServiceForm(vehicleId) {
+      els.serviceSearch.value = "";
+      renderServiceVehicleResults();
+      if (vehicleId) {
+        openMaintenanceForm(vehicleId);
+        return;
+      }
+      openModal("serviceModal");
+    }
+
+    function openMaintenanceForm(vehicleId) {
+      try {
+        resetServiceForm(vehicleId);
+        closeModal("serviceModal");
+        openModal("maintenanceModal");
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    function openServiceEdit(serviceId) {
+      try {
+        const service = data.services.find(item => item.id === serviceId);
+        if (!service) return;
+        const vehicle = findVehicle(service.vehicleId);
+        if (!vehicle) return;
+        editingServiceId = service.id;
+        activeMaintenanceVehicleId = vehicle.id;
+        els.maintenanceTitle.textContent = `Editar mantenimiento · ${vehicle.brand} ${vehicle.model}`;
+        els.maintenanceVehicleSummary.textContent = `${vehicle.brand} ${vehicle.model} ${vehicle.year} · Placa ${vehicle.plate}`;
+        els.serviceDate.value = service.date || today();
+        const editUnit = setServiceUnit(service.unit || vehicle.unit);
+        els.serviceMileage.value = service.mileage || "";
+        els.serviceNext.value = service.nextService || "";
+        els.serviceOil.value = service.oil || "";
+        els.serviceOilBrand.value = service.oilBrand || "";
+        els.serviceOilUnit.value = service.oilUnit || "LITROS";
+        els.serviceOilQuantity.value = service.oilQuantity || "";
+        els.serviceOilRealQuantity.value = service.oilRealQuantity || "";
+        els.transmissionMileage.value = service.transmissionMileage || service.mileage || "";
+        els.transmissionOil.value = service.transmissionOil || "";
+        els.transmissionOilBrand.value = service.transmissionOilBrand || "";
+        els.transmissionOilUnit.value = service.transmissionOilUnit || "LITROS";
+        els.transmissionOilQuantity.value = service.transmissionOilQuantity || "";
+        els.transmissionOilRealQuantity.value = service.transmissionOilRealQuantity || "";
+        updateLongIntervalOptions();
+        renderLongIntervalSelect(els.transmissionInterval, editUnit, service.transmissionIntervalCustom ? "other" : service.transmissionInterval);
+        els.transmissionNext.value = service.transmissionNextService || "";
+        els.transmissionIntervalCustom.value = service.transmissionIntervalCustom || "";
+        updateIntervalCustomVisibility();
+        els.frontDiffMileage.value = service.frontDiffMileage || service.mileage || "";
+        els.frontDiffOil.value = service.frontDiffOil || "";
+        els.frontDiffOilBrand.value = service.frontDiffOilBrand || "";
+        els.frontDiffOilUnit.value = service.frontDiffOilUnit || "LITROS";
+        els.frontDiffOilQuantity.value = service.frontDiffOilQuantity || "";
+        els.frontDiffOilRealQuantity.value = service.frontDiffOilRealQuantity || "";
+        renderLongIntervalSelect(els.frontDiffInterval, editUnit, service.frontDiffIntervalCustom ? "other" : service.frontDiffInterval || service.differentialInterval);
+        els.frontDiffIntervalCustom.value = service.frontDiffIntervalCustom || "";
+        updateIntervalCustomVisibility();
+        els.frontDiffNext.value = service.frontDiffNextService || service.differentialNextService || "";
+        els.rearDiffMileage.value = service.rearDiffMileage || service.mileage || "";
+        els.rearDiffOil.value = service.rearDiffOil || "";
+        els.rearDiffOilBrand.value = service.rearDiffOilBrand || "";
+        els.rearDiffOilUnit.value = service.rearDiffOilUnit || "LITROS";
+        els.rearDiffOilQuantity.value = service.rearDiffOilQuantity || "";
+        els.rearDiffOilRealQuantity.value = service.rearDiffOilRealQuantity || "";
+        renderLongIntervalSelect(els.rearDiffInterval, editUnit, service.rearDiffIntervalCustom ? "other" : service.rearDiffInterval || service.differentialInterval);
+        els.rearDiffIntervalCustom.value = service.rearDiffIntervalCustom || "";
+        updateIntervalCustomVisibility();
+        els.rearDiffNext.value = service.rearDiffNextService || service.differentialNextService || "";
+        els.transferMileage.value = service.transferMileage || service.mileage || "";
+        els.transferOil.value = service.transferOil || "";
+        els.transferOilBrand.value = service.transferOilBrand || "";
+        els.transferOilUnit.value = service.transferOilUnit || "LITROS";
+        els.transferOilQuantity.value = service.transferOilQuantity || "";
+        els.transferOilRealQuantity.value = service.transferOilRealQuantity || "";
+        renderLongIntervalSelect(els.transferInterval, editUnit, service.transferIntervalCustom ? "other" : service.transferInterval);
+        els.transferIntervalCustom.value = service.transferIntervalCustom || "";
+        updateIntervalCustomVisibility();
+        els.transferNext.value = service.transferNextService || "";
+        document.querySelector(`input[name="otherServiceUnit"][value="${normalizedUnit(service.otherServiceUnit || service.unit)}"]`).checked = true;
+        els.otherServiceMileage.value = service.otherServiceMileage || "";
+        els.otherServiceNext.value = service.otherServiceNext || "";
+        els.otherServiceDescription.value = service.otherServiceDescription || "";
+        els.serviceDetails.value = service.details || "";
+        els.serviceReminder.value = service.reminderDays ? "manual" : service.reminderMonths || "";
+        els.serviceReminderDays.value = service.reminderDays || "";
+        updateReminderDaysVisibility();
+        setSelectedServiceSections(service.serviceTypes || [
+          service.oil ? "motor" : "",
+          service.transmissionOil ? "transmission" : "",
+          service.frontDiffOil ? "frontDiff" : "",
+          service.rearDiffOil ? "rearDiff" : "",
+          service.transferOil ? "transfer" : "",
+          service.otherServiceDescription ? "other" : ""
+        ].filter(Boolean));
+        setFilterServices(normalizeFilterServices(service));
+        closeModal("serviceDetailModal");
+        closeModal("profileModal");
+        openModal("maintenanceModal");
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    function openProfile(vehicleId) {
+      activeProfileVehicleId = vehicleId;
+      els.profileLogWrap.classList.add("hidden");
+      els.profileToggleLog.textContent = "Leer bitácora";
+      els.profileMenu.classList.remove("open");
+      renderProfile();
+      openModal("profileModal");
+    }
+
+    function renderProfile() {
+      const vehicle = findVehicle(activeProfileVehicleId);
+      if (!vehicle) return;
+      const services = vehicleServices(vehicle.id);
+      els.profileTitle.textContent = `${vehicle.brand} ${vehicle.model}`;
+      els.profilePlate.textContent = vehicle.plate;
+      els.profileModel.textContent = `${vehicle.brand} ${vehicle.model} ${vehicle.year}`;
+      els.profileMileage.textContent = formatReading(vehicle.mileage, vehicle.unit);
+      const latestService = services[0];
+      const timeInfo = reminderInfo(latestService);
+      els.profileReminderWhatsapp.classList.toggle("hidden", !(timeInfo && timeInfo.days <= 15));
+      els.profileServices.innerHTML = services.length ? services.map(service => {
+        const summary = serviceCardSummary(service, vehicle);
+        return `
+          <button class="service-card" data-action="service-detail" data-id="${service.id}" style="width:100%; text-align:left">
+            <div class="service-top">
+              <strong>${formatReading(service.mileage, service.unit || vehicle.unit)}</strong>
+              <span>${escapeHtml(service.date)}</span>
+            </div>
+            <p style="margin:0; color:var(--gray-700)">${escapeHtml(summary.nextLabel)}: ${escapeHtml(summary.nextText)} · ${escapeHtml(summary.detailLabel)}: ${escapeHtml(summary.detailValue || "-")}</p>
+          </button>
+        `;
+      }).join("") : `<div class="empty">Este vehículo todavía no tiene mantenimientos registrados.</div>`;
+    }
+
+    function latestServiceWith(vehicleId, predicate) {
+      return vehicleServices(vehicleId).find(predicate) || null;
+    }
+
+    function partsRows(rows) {
+      return rows.filter(row => row.value).map(row => `
+        <div class="detail-row"><span>${escapeHtml(row.label)}</span><strong>${escapeHtml(row.value)}</strong></div>
+      `).join("");
+    }
+
+    function partsSection(title, rows) {
+      const html = partsRows(rows);
+      return html ? `<section class="parts-section"><h4>${escapeHtml(title)}</h4>${html}</section>` : "";
+    }
+
+    function openPartsModal(vehicleId) {
+      const vehicle = findVehicle(vehicleId);
+      if (!vehicle) return;
+      const motor = latestServiceWith(vehicleId, service => service.oil || service.oilBrand || service.oilQuantity || service.oilRealQuantity);
+      const transmission = latestServiceWith(vehicleId, service => service.transmissionOil || service.transmissionOilBrand || service.transmissionOilQuantity || service.transmissionOilRealQuantity);
+      const frontDiff = latestServiceWith(vehicleId, service => service.frontDiffOil || service.frontDiffOilBrand || service.frontDiffOilQuantity || service.frontDiffOilRealQuantity);
+      const rearDiff = latestServiceWith(vehicleId, service => service.rearDiffOil || service.rearDiffOilBrand || service.rearDiffOilQuantity || service.rearDiffOilRealQuantity);
+      const transfer = latestServiceWith(vehicleId, service => service.transferOil || service.transferOilBrand || service.transferOilQuantity || service.transferOilRealQuantity);
+      const filterServices = latestFilterServicesForVehicleId(vehicleId);
+      const filterRows = filterServices ? FILTER_CATALOG.map(filter => {
+        const item = filterServices[filter.key] || {};
+        if (!item.status || item.status.startsWith("No se cambi")) return null;
+        return { label: filter.label, value: [item.status, item.brand, item.code].filter(Boolean).join(" · ") };
+      }).filter(Boolean) : [];
+      const sections = [
+        partsSection("Aceite de motor", [
+          { label: "Viscosidad", value: motor?.oil },
+          { label: "Marca", value: motor?.oilBrand },
+          { label: "Unidad", value: motor?.oilUnit },
+          { label: "Cantidad seleccionada", value: motor?.oilQuantity ? `${motor.oilQuantity} ${motor.oilUnit || ""}`.trim() : "" },
+          { label: "Cantidad real utilizada", value: motor?.oilRealQuantity ? `${motor.oilRealQuantity} ${motor.oilUnit || ""}`.trim() : "" }
+        ]),
+        partsSection("Aceite de transmisión", [
+          { label: "Tipo / viscosidad", value: transmission?.transmissionOil },
+          { label: "Marca", value: transmission?.transmissionOilBrand },
+          { label: "Unidad", value: transmission?.transmissionOilUnit },
+          { label: "Cantidad seleccionada", value: transmission?.transmissionOilQuantity ? `${transmission.transmissionOilQuantity} ${transmission.transmissionOilUnit || ""}`.trim() : "" },
+          { label: "Cantidad real utilizada", value: transmission?.transmissionOilRealQuantity ? `${transmission.transmissionOilRealQuantity} ${transmission.transmissionOilUnit || ""}`.trim() : "" }
+        ]),
+        partsSection("Diferencial delantero", [
+          { label: "Tipo / viscosidad", value: frontDiff?.frontDiffOil },
+          { label: "Marca", value: frontDiff?.frontDiffOilBrand },
+          { label: "Unidad", value: frontDiff?.frontDiffOilUnit },
+          { label: "Cantidad seleccionada", value: frontDiff?.frontDiffOilQuantity ? `${frontDiff.frontDiffOilQuantity} ${frontDiff.frontDiffOilUnit || ""}`.trim() : "" },
+          { label: "Cantidad real utilizada", value: frontDiff?.frontDiffOilRealQuantity ? `${frontDiff.frontDiffOilRealQuantity} ${frontDiff.frontDiffOilUnit || ""}`.trim() : "" }
+        ]),
+        partsSection("Diferencial trasero", [
+          { label: "Tipo / viscosidad", value: rearDiff?.rearDiffOil },
+          { label: "Marca", value: rearDiff?.rearDiffOilBrand },
+          { label: "Unidad", value: rearDiff?.rearDiffOilUnit },
+          { label: "Cantidad seleccionada", value: rearDiff?.rearDiffOilQuantity ? `${rearDiff.rearDiffOilQuantity} ${rearDiff.rearDiffOilUnit || ""}`.trim() : "" },
+          { label: "Cantidad real utilizada", value: rearDiff?.rearDiffOilRealQuantity ? `${rearDiff.rearDiffOilRealQuantity} ${rearDiff.rearDiffOilUnit || ""}`.trim() : "" }
+        ]),
+        partsSection("Transferencia", [
+          { label: "Tipo / viscosidad", value: transfer?.transferOil },
+          { label: "Marca", value: transfer?.transferOilBrand },
+          { label: "Unidad", value: transfer?.transferOilUnit },
+          { label: "Cantidad seleccionada", value: transfer?.transferOilQuantity ? `${transfer.transferOilQuantity} ${transfer.transferOilUnit || ""}`.trim() : "" },
+          { label: "Cantidad real utilizada", value: transfer?.transferOilRealQuantity ? `${transfer.transferOilRealQuantity} ${transfer.transferOilUnit || ""}`.trim() : "" }
+        ]),
+        partsSection("Filtros registrados", filterRows)
+      ].join("");
+      els.partsTitle.textContent = `Refacciones · ${vehicle.brand} ${vehicle.model}`;
+      els.partsBody.innerHTML = sections
+        ? `<div class="parts-list">${sections}</div>`
+        : `<div class="empty">Todavía no hay refacciones registradas para este vehículo.</div>`;
+      els.profileMenu.classList.remove("open");
+      openModal("partsModal");
+    }
+
+    function serviceDetailHtml(service, options = {}) {
+      const includeInternal = Boolean(options.includeInternal);
+      const filterSummary = filterServiceRowsHtml(service);
+      const timeInfo = reminderInfo(service);
+      const motorSection = service.oil ? `<section class="detail-section">
+            <h4 class="detail-title">MOTOR</h4>
+            <div class="detail-row"><span>Aceite de motor</span><strong>${escapeHtml(service.oil)}</strong></div>
+          </section>` : "";
+      const transmissionRows = [
+        service.transmissionOil ? `<div class="detail-row"><span>Aceite de transmisión</span><strong>${escapeHtml(service.transmissionOil)}</strong></div>` : "",
+        service.transmissionNextService ? `<div class="detail-row"><span>Próximo servicio transmisión</span><strong>${formatReading(service.transmissionNextService, service.transmissionUnit || service.unit)}</strong></div>` : ""
+      ].join("");
+      const transmissionSection = transmissionRows ? `<section class="detail-section">
+            <h4 class="detail-title">TRANSMISIÓN</h4>
+            ${transmissionRows}
+          </section>` : "";
+      const differentialRows = [
+        service.frontDiffOil ? `<div class="detail-row"><span>Diferencial delantero</span><strong>${escapeHtml(service.frontDiffOil)}</strong></div>` : "",
+        service.frontDiffNextService ? `<div class="detail-row"><span>Próximo diferencial delantero</span><strong>${formatReading(service.frontDiffNextService, service.frontDiffUnit || service.unit)}</strong></div>` : "",
+        service.rearDiffOil ? `<div class="detail-row"><span>Diferencial trasero</span><strong>${escapeHtml(service.rearDiffOil)}</strong></div>` : "",
+        service.rearDiffNextService ? `<div class="detail-row"><span>Próximo diferencial trasero</span><strong>${formatReading(service.rearDiffNextService, service.rearDiffUnit || service.unit)}</strong></div>` : ""
+      ].join("");
+      const differentialSection = differentialRows ? `<section class="detail-section">
+            <h4 class="detail-title">DIFERENCIALES</h4>
+            ${differentialRows}
+          </section>` : "";
+      const filterSection = filterSummary ? `<section class="detail-section">
+            <h4 class="detail-title">SERVICIOS REALIZADOS A LOS FILTROS</h4>
+            ${filterSummary}
+          </section>` : "";
+      const transferSection = service.transferOil ? `<section class="detail-section">
+            <h4 class="detail-title">TRANSFERENCIA</h4>
+            <div class="detail-row"><span>Aceite de transferencia</span><strong>${escapeHtml(service.transferOil)}</strong></div>
+            ${service.transferNextService ? `<div class="detail-row"><span>Próximo servicio transferencia</span><strong>${formatReading(service.transferNextService, service.transferUnit || service.unit)}</strong></div>` : ""}
+          </section>` : "";
+      const otherSection = service.otherServiceDescription ? `<section class="detail-section">
+            <h4 class="detail-title">OTRO SERVICIO</h4>
+            ${service.otherServiceMileage ? `<div class="detail-row"><span>Lectura</span><strong>${formatReading(service.otherServiceMileage, service.otherServiceUnit || service.unit)}</strong></div>` : ""}
+            ${service.otherServiceNext ? `<div class="detail-row"><span>Próximo servicio</span><strong>${formatReading(service.otherServiceNext, service.otherServiceUnit || service.unit)}</strong></div>` : ""}
+            <p class="detail-note">${escapeHtml(service.otherServiceDescription)}</p>
+          </section>` : "";
+      const internalRows = [
+        service.oilBrand ? `<div class="detail-row"><span>Marca aceite motor</span><strong>${escapeHtml(service.oilBrand)}</strong></div>` : "",
+        service.oilQuantity ? `<div class="detail-row"><span>Cantidad de aceite</span><strong>${escapeHtml(service.oilQuantity)} ${escapeHtml(service.oilUnit || "")}</strong></div>` : "",
+        service.oilRealQuantity ? `<div class="detail-row"><span>Cantidad real utilizada</span><strong>${escapeHtml(service.oilRealQuantity)} ${escapeHtml(service.oilUnit || "")}</strong></div>` : "",
+        service.transmissionOilBrand ? `<div class="detail-row"><span>Marca aceite transmisión</span><strong>${escapeHtml(service.transmissionOilBrand)}</strong></div>` : "",
+        service.transmissionOilQuantity ? `<div class="detail-row"><span>Cantidad aceite transmisión</span><strong>${escapeHtml(service.transmissionOilQuantity)} ${escapeHtml(service.transmissionOilUnit || "")}</strong></div>` : "",
+        service.transmissionOilRealQuantity ? `<div class="detail-row"><span>Cantidad real transmisión</span><strong>${escapeHtml(service.transmissionOilRealQuantity)}</strong></div>` : "",
+        service.frontDiffOilBrand ? `<div class="detail-row"><span>Marca aceite diferencial delantero</span><strong>${escapeHtml(service.frontDiffOilBrand)}</strong></div>` : "",
+        service.frontDiffOilQuantity ? `<div class="detail-row"><span>Cantidad aceite diferencial delantero</span><strong>${escapeHtml(service.frontDiffOilQuantity)} ${escapeHtml(service.frontDiffOilUnit || "")}</strong></div>` : "",
+        service.frontDiffOilRealQuantity ? `<div class="detail-row"><span>Cantidad real diferencial delantero</span><strong>${escapeHtml(service.frontDiffOilRealQuantity)}</strong></div>` : "",
+        service.rearDiffOilBrand ? `<div class="detail-row"><span>Marca aceite diferencial trasero</span><strong>${escapeHtml(service.rearDiffOilBrand)}</strong></div>` : "",
+        service.rearDiffOilQuantity ? `<div class="detail-row"><span>Cantidad aceite diferencial trasero</span><strong>${escapeHtml(service.rearDiffOilQuantity)} ${escapeHtml(service.rearDiffOilUnit || "")}</strong></div>` : "",
+        service.rearDiffOilRealQuantity ? `<div class="detail-row"><span>Cantidad real diferencial trasero</span><strong>${escapeHtml(service.rearDiffOilRealQuantity)}</strong></div>` : "",
+        service.transferOilBrand ? `<div class="detail-row"><span>Marca aceite transferencia</span><strong>${escapeHtml(service.transferOilBrand)}</strong></div>` : "",
+        service.transferOilQuantity ? `<div class="detail-row"><span>Cantidad aceite transferencia</span><strong>${escapeHtml(service.transferOilQuantity)} ${escapeHtml(service.transferOilUnit || "")}</strong></div>` : "",
+        service.transferOilRealQuantity ? `<div class="detail-row"><span>Cantidad real transferencia</span><strong>${escapeHtml(service.transferOilRealQuantity)}</strong></div>` : "",
+        internalFilterRowsHtml(service)
+      ].join("");
+      const internalSection = includeInternal && internalRows ? `<section class="detail-section">
+            <h4 class="detail-title">DATOS INTERNOS DEL TALLER</h4>
+            ${internalRows}
+          </section>` : "";
+      const observationsSection = service.details ? `<section class="detail-section">
+            <h4 class="detail-title">OBSERVACIONES</h4>
+            <p class="detail-note">${escapeHtml(service.details)}</p>
+          </section>` : "";
+      const reminderSection = timeInfo ? `<section class="detail-section">
+            <h4 class="detail-title">RECORDATORIO</h4>
+            <div class="detail-row"><span>Plazo</span><strong>${timeInfo.manualDays ? `${timeInfo.manualDays} días` : `${timeInfo.months} meses`}</strong></div>
+            <div class="detail-row"><span>Días restantes</span><strong>${timeInfo.days}</strong></div>
+          </section>` : "";
+      const sections = motorSection + transmissionSection + differentialSection + transferSection + otherSection + filterSection + internalSection + observationsSection + reminderSection;
+      return `
+        <div class="service-card detail-card">
+          <h3 class="detail-card-title">Servicios realizados</h3>
+          ${sections || `<section class="detail-section"><p class="detail-note">No se registraron detalles adicionales.</p></section>`}
+        </div>
+      `;
+    }
+
+    function openServiceDetail(serviceId) {
+      const service = data.services.find(item => item.id === serviceId);
+      if (!service) return;
+      const vehicle = findVehicle(service.vehicleId);
+      if (!vehicle) return;
+      const serviceUnit = service.unit || vehicle.unit;
+      els.serviceDetailTitle.textContent = `${vehicle.brand} ${vehicle.model} · ${formatReading(service.mileage, serviceUnit)}`;
+      els.serviceDetailBody.innerHTML = `
+        <div class="meta" style="margin-bottom:14px">
+          <div><span>Fecha</span><strong>${escapeHtml(service.date)}</strong></div>
+          <div><span>Odómetro</span><strong>${formatReading(service.mileage, serviceUnit)}</strong></div>
+          <div><span>Próximo</span><strong>${formatReading(service.nextService, serviceUnit)}</strong></div>
+        </div>
+        ${serviceDetailHtml(service, { includeInternal: true })}
+        <div class="actions" style="margin-top:14px">
+          <button class="btn primary" data-action="edit-service" data-id="${service.id}">Editar mantenimiento</button>
+          <button class="btn danger-btn" data-action="delete-service" data-id="${service.id}">Eliminar registro</button>
+        </div>
+      `;
+      els.serviceDetailBody.querySelector('[data-action="edit-service"]')?.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        openServiceEdit(service.id);
+      });
+      openModal("serviceDetailModal");
+    }
+
+    function saveService() {
+      const vehicle = findVehicle(activeMaintenanceVehicleId);
+      if (!vehicle) return;
+      const selectedSections = selectedServiceSections();
+      if (!selectedSections.length) {
+        alert("Seleccioná qué mantenimiento se va a realizar.");
+        return;
+      }
+      const primaryMileage = Number(digitsOnly(els.serviceMileage.value || els.transmissionMileage.value || els.frontDiffMileage.value || els.rearDiffMileage.value || els.transferMileage.value || els.otherServiceMileage.value));
+      const primaryUnit = selectedSections.includes("motor")
+        ? selectedUnit("serviceUnit")
+        : selectedSections.includes("transmission")
+          ? selectedUnit("transmissionUnit")
+          : selectedSections.includes("frontDiff")
+            ? selectedUnit("frontDiffUnit")
+            : selectedSections.includes("rearDiff")
+              ? selectedUnit("rearDiffUnit")
+              : selectedSections.includes("transfer")
+                ? selectedUnit("transferUnit")
+                : selectedUnit("otherServiceUnit");
+      if (!primaryMileage) {
+        alert("Ingresá la lectura del odómetro del mantenimiento seleccionado.");
+        return;
+      }
+      if (selectedSections.includes("motor") && !els.serviceNext.value.trim()) {
+        els.serviceNext.focus();
+        alert("Ingresá cuándo toca el próximo servicio de motor.");
+        return;
+      }
+      if (selectedSections.includes("other") && (!els.otherServiceMileage.value.trim() || !els.otherServiceNext.value.trim() || !els.otherServiceDescription.value.trim())) {
+        alert("Completá lectura, próximo servicio y descripción del otro servicio.");
+        return;
+      }
+      if (els.serviceReminder.value === "manual" && !Number(digitsOnly(els.serviceReminderDays.value))) {
+        els.serviceReminderDays.focus();
+        alert("Ingresá la cantidad de días para el recordatorio manual.");
+        return;
+      }
+      if (selectedSections.includes("motor") && els.serviceOil.value.trim() && (!els.serviceOilQuantity.value || !els.serviceOilRealQuantity.value.trim())) {
+        (els.serviceOilQuantity.value ? els.serviceOilRealQuantity : els.serviceOilQuantity).focus();
+        alert("Seleccioná la cantidad de aceite e ingresá la cantidad real utilizada.");
+        return;
+      }
+      if (!validateChangedFilterDetails()) return;
+      const service = editingServiceId ? data.services.find(item => item.id === editingServiceId) : {
+        id: uid("svc"),
+        vehicleId: vehicle.id,
+        createdAt: new Date().toISOString()
+      };
+      if (!service) return;
+      if (!service.createdAt) service.createdAt = new Date().toISOString();
+      const filterServices = collectFilterServices();
+      service.vehicleId = vehicle.id;
+      Object.assign(service, {
+        date: els.serviceDate.value || today(),
+        serviceTypes: selectedSections,
+        unit: primaryUnit,
+        mileage: primaryMileage,
+        nextService: selectedSections.includes("motor") ? Number(digitsOnly(els.serviceNext.value)) : 0,
+        oil: cleanName(els.serviceOil.value).trim(),
+        oilBrand: cleanName(els.serviceOilBrand.value).trim(),
+        oilUnit: els.serviceOilUnit.value,
+        oilQuantity: els.serviceOilQuantity.value,
+        oilRealQuantity: els.serviceOilRealQuantity.value.toUpperCase().replace(/[^0-9A-Z .,/]/g, "").trim(),
+        filterServices,
+        filters: FILTER_CATALOG
+          .filter(filter => filterServices[filter.key]?.status === "Cambio")
+          .map(filter => filter.label),
+        transmissionUnit: selectedUnit("transmissionUnit"),
+        transmissionMileage: Number(digitsOnly(els.transmissionMileage.value)) || 0,
+        transmissionOil: cleanName(els.transmissionOil.value).trim(),
+        transmissionOilBrand: cleanName(els.transmissionOilBrand.value).trim(),
+        transmissionOilUnit: els.transmissionOilUnit.value,
+        transmissionOilQuantity: els.transmissionOilQuantity.value,
+        transmissionOilRealQuantity: els.transmissionOilRealQuantity.value.toUpperCase().replace(/[^0-9A-Z .,/]/g, "").trim(),
+        transmissionInterval: selectedInterval(els.transmissionInterval, els.transmissionIntervalCustom),
+        transmissionIntervalCustom: els.transmissionInterval.value === "other" ? digitsOnly(els.transmissionIntervalCustom.value) : "",
+        transmissionNextService: Number(digitsOnly(els.transmissionNext.value)) || 0,
+        frontDiffUnit: selectedUnit("frontDiffUnit"),
+        frontDiffMileage: Number(digitsOnly(els.frontDiffMileage.value)) || 0,
+        frontDiffOil: cleanName(els.frontDiffOil.value).trim(),
+        frontDiffOilBrand: cleanName(els.frontDiffOilBrand.value).trim(),
+        frontDiffOilUnit: els.frontDiffOilUnit.value,
+        frontDiffOilQuantity: els.frontDiffOilQuantity.value,
+        frontDiffOilRealQuantity: els.frontDiffOilRealQuantity.value.toUpperCase().replace(/[^0-9A-Z .,/]/g, "").trim(),
+        frontDiffInterval: selectedInterval(els.frontDiffInterval, els.frontDiffIntervalCustom),
+        frontDiffIntervalCustom: els.frontDiffInterval.value === "other" ? digitsOnly(els.frontDiffIntervalCustom.value) : "",
+        frontDiffNextService: Number(digitsOnly(els.frontDiffNext.value)) || 0,
+        rearDiffUnit: selectedUnit("rearDiffUnit"),
+        rearDiffMileage: Number(digitsOnly(els.rearDiffMileage.value)) || 0,
+        rearDiffOil: cleanName(els.rearDiffOil.value).trim(),
+        rearDiffOilBrand: cleanName(els.rearDiffOilBrand.value).trim(),
+        rearDiffOilUnit: els.rearDiffOilUnit.value,
+        rearDiffOilQuantity: els.rearDiffOilQuantity.value,
+        rearDiffOilRealQuantity: els.rearDiffOilRealQuantity.value.toUpperCase().replace(/[^0-9A-Z .,/]/g, "").trim(),
+        rearDiffInterval: selectedInterval(els.rearDiffInterval, els.rearDiffIntervalCustom),
+        rearDiffIntervalCustom: els.rearDiffInterval.value === "other" ? digitsOnly(els.rearDiffIntervalCustom.value) : "",
+        rearDiffNextService: Number(digitsOnly(els.rearDiffNext.value)) || 0,
+        differentialInterval: selectedInterval(els.rearDiffInterval, els.rearDiffIntervalCustom) || selectedInterval(els.frontDiffInterval, els.frontDiffIntervalCustom),
+        differentialNextService: Number(digitsOnly(els.rearDiffNext.value || els.frontDiffNext.value)) || 0,
+        transferUnit: selectedUnit("transferUnit"),
+        transferMileage: Number(digitsOnly(els.transferMileage.value)) || 0,
+        transferOil: cleanName(els.transferOil.value).trim(),
+        transferOilBrand: cleanName(els.transferOilBrand.value).trim(),
+        transferOilUnit: els.transferOilUnit.value,
+        transferOilQuantity: els.transferOilQuantity.value,
+        transferOilRealQuantity: els.transferOilRealQuantity.value.toUpperCase().replace(/[^0-9A-Z .,/]/g, "").trim(),
+        transferInterval: selectedInterval(els.transferInterval, els.transferIntervalCustom),
+        transferIntervalCustom: els.transferInterval.value === "other" ? digitsOnly(els.transferIntervalCustom.value) : "",
+        transferNextService: Number(digitsOnly(els.transferNext.value)) || 0,
+        otherServiceUnit: selectedUnit("otherServiceUnit"),
+        otherServiceMileage: Number(digitsOnly(els.otherServiceMileage.value)) || 0,
+        otherServiceNext: Number(digitsOnly(els.otherServiceNext.value)) || 0,
+        otherServiceDescription: cleanName(els.otherServiceDescription.value).trim(),
+        details: cleanName(els.serviceDetails.value).trim(),
+        reminderMonths: els.serviceReminder.value === "manual" ? 0 : Number(els.serviceReminder.value || 0),
+        reminderDays: els.serviceReminder.value === "manual" ? Number(digitsOnly(els.serviceReminderDays.value)) || 0 : 0
+      });
+      if (!editingServiceId) data.services.push(service);
+      editingServiceId = null;
+      vehicle.unit = service.unit;
+      vehicle.mileage = service.mileage;
+      if (service.nextService) vehicle.nextService = service.nextService;
+      saveData();
+      closeModal("maintenanceModal");
+      render();
+      openProfile(vehicle.id);
+    }
+
+    function deleteVehicle(vehicleId) {
+      const vehicle = findVehicle(vehicleId);
+      if (!vehicle) return;
+      const label = `${vehicle.brand} ${vehicle.model} · Placa ${vehicle.plate}`;
+      if (!confirm(`¿Seguro que querés eliminar este cliente?\n\n${label}\n\nSe eliminará el vehículo y toda su bitácora de mantenimientos. Esta información no se puede recuperar.`)) return;
+      data.vehicles = data.vehicles.filter(item => item.id !== vehicleId);
+      data.services = data.services.filter(item => item.vehicleId !== vehicleId);
+      if (activeProfileVehicleId === vehicleId) activeProfileVehicleId = null;
+      saveData();
+      closeModal("profileModal");
+      render();
+    }
+
+    function deleteService(serviceId) {
+      if (!confirm("Eliminar este servicio?")) return;
+      data.services = data.services.filter(service => service.id !== serviceId);
+      saveData();
+      render();
+      if (activeProfileVehicleId && els.profileModal.classList.contains("open")) renderProfile();
+    }
+
+    function openClient(vehicle) {
+      window.open(publicUrl(vehicle), "_blank");
+    }
+
+    function renderClient(vehicle) {
+      document.body.classList.add("client-mode");
+      document.querySelectorAll(".view").forEach(section => section.classList.add("hidden"));
+      document.getElementById("view-client").classList.remove("hidden");
+      els.clientShopName.textContent = data.shop.name || "Taller QR";
+      els.clientShopInfo.textContent = data.shop.address || "Historial del vehículo";
+
+      if (!vehicle) {
+        els.clientLogo.src = data.shop.logo || fallbackPhoto;
+        els.clientPlate.textContent = "QR";
+        els.clientModel.textContent = "No válido";
+        els.clientModel.className = "";
+        els.clientMileage.textContent = "-";
+        els.clientServicesCount.textContent = "-";
+        els.clientNext.textContent = "Este código no corresponde a ningún vehículo cargado.";
+        els.clientTimeNext.classList.add("hidden");
+        els.clientComponentNext.classList.add("hidden");
+        els.clientServices.innerHTML = `<div class="empty">Solicitá un nuevo QR al taller.</div>`;
+        return;
+      }
+
+      const services = vehicleServices(vehicle.id);
+      const latestService = services[0] || null;
+      const componentRows = componentReminderRows(vehicle);
+      const motorRow = componentRows.find(row => row.key === "motor");
+      const clientUnit = latestService?.unit || vehicle.unit;
+      const clientMileage = latestService?.mileage || vehicle.mileage;
+      const clientNextService = motorRow?.next || vehicle.nextService;
+      els.clientLogo.src = data.shop.logo || fallbackPhoto;
+      els.clientPlate.textContent = `${vehicle.brand} ${vehicle.model} ${vehicle.year}`;
+      els.clientModel.innerHTML = `
+        <span class="plate-line">Placa <strong>${escapeHtml(vehicle.plate)}</strong></span>
+        ${vehicle.owner ? `<span class="owner-line">Cliente: <strong>${escapeHtml(vehicle.owner)}</strong></span>` : ""}
+      `;
+      els.clientModel.className = "client-identity";
+      els.clientMileage.textContent = formatReading(clientMileage, clientUnit);
+      els.clientServicesCount.textContent = services.length;
+      const odometerText = clientNextService
+        ? `Próximo servicio de motor programado a ${formatReading(clientNextService, motorRow?.unit || clientUnit)}.`
+        : "Próximo servicio de motor pendiente.";
+      const componentNotices = clientReminderNoticeRows(vehicle);
+      els.clientNext.textContent = odometerText;
+      els.clientTimeNext.textContent = "";
+      els.clientTimeNext.classList.add("hidden");
+      els.clientComponentNext.innerHTML = componentNotices.map(row => `
+        <div class="notice">${escapeHtml(row.label)}: ${escapeHtml(row.value)}.</div>
+      `).join("");
+      els.clientComponentNext.classList.toggle("hidden", !componentNotices.length);
+      els.clientWhatsapp.onclick = () => openWhatsapp("50371660867", "Hola, Automotriz Medina, revisé la bitácora de mi vehículo y deseo agendar para un mantenimiento.");
+      els.clientServices.innerHTML = services.length ? services.map(service => {
+        const summary = serviceCardSummary(service, vehicle);
+        return `
+          <button class="service-card public-service-card" data-action="public-service-detail" data-id="${service.id}" style="width:100%; text-align:left">
+            <div class="public-service-main">
+              <div class="public-service-row">
+                <div>
+                  <span class="public-service-label">Odómetro</span>
+                  <strong class="public-service-value">${formatReading(service.mileage, service.unit || vehicle.unit)}</strong>
+                </div>
+                <div class="public-service-next">
+                  <span class="public-service-label">${escapeHtml(summary.nextLabel)}</span>
+                  <strong class="public-service-value">${escapeHtml(summary.nextText)}</strong>
+                </div>
+              </div>
+              <div class="public-service-date">${escapeHtml(service.date)}</div>
+            </div>
+            <p class="public-service-oil"><strong>${escapeHtml(summary.detailLabel)}:</strong> ${escapeHtml(summary.detailValue || "-")}</p>
+          </button>
+        `;
+      }).join("") : `<div class="empty">Este vehículo todavía no tiene servicios registrados.</div>`;
+    }
+
+    function openPublicServiceDetail(serviceId) {
+      const service = data.services.find(item => item.id === serviceId);
+      if (!service) return;
+      const vehicle = findVehicle(service.vehicleId);
+      if (!vehicle) return;
+      const serviceUnit = service.unit || vehicle.unit;
+      const summary = serviceCardSummary(service, vehicle);
+      els.serviceDetailTitle.textContent = `${vehicle.brand} ${vehicle.model} · ${formatReading(service.mileage, serviceUnit)}`;
+      els.serviceDetailBody.innerHTML = `
+        <div class="meta" style="margin-bottom:14px">
+          <div><span>Fecha</span><strong>${escapeHtml(service.date)}</strong></div>
+          <div><span>Odómetro</span><strong>${formatReading(service.mileage, serviceUnit)}</strong></div>
+          <div><span>${escapeHtml(summary.nextLabel)}</span><strong>${escapeHtml(summary.nextText)}</strong></div>
+        </div>
+        ${serviceDetailHtml(service)}
+      `;
+      openModal("serviceDetailModal");
+    }
+
+    function openWhatsapp(phone, message) {
+      const cleaned = String(phone || "").replace(/[^\d+]/g, "").replace("+", "");
+      if (!cleaned) return;
+      window.open(`https://wa.me/${cleaned}?text=${encodeURIComponent(message)}`, "_blank");
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const temp = document.createElement("textarea");
+        temp.value = text;
+        temp.style.position = "fixed";
+        temp.style.opacity = "0";
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        temp.remove();
+      }
+    }
+
+    function fileToDataUrl(file, callback) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => callback(reader.result);
+      reader.readAsDataURL(file);
+    }
+
+    function installManifest() {
+      const manifest = {
+        name: "Automotriz Medina SV",
+        short_name: "Medina SV",
+        start_url: location.href.split("?")[0].split("#")[0],
+        display: "standalone",
+        background_color: "#f4f7fb",
+        theme_color: "#1358d8",
+        icons: []
+      };
+      const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+      const link = document.createElement("link");
+      link.rel = "manifest";
+      link.href = URL.createObjectURL(blob);
+      document.head.appendChild(link);
+    }
+
+    function wireEvents() {
+      document.querySelectorAll("[data-view]").forEach(button => {
+        button.addEventListener("click", () => switchView(button.dataset.view));
+      });
+      document.querySelectorAll("[data-jump]").forEach(button => {
+        button.addEventListener("click", () => switchView(button.dataset.jump));
+      });
+      document.querySelectorAll("[data-close]").forEach(button => {
+        button.addEventListener("click", () => closeModal(button.dataset.close));
+      });
+      document.getElementById("menuBtn").addEventListener("click", () => {
+        if (els.sidebar.classList.contains("open")) closeSidebar();
+        else openSidebar();
+      });
+      els.sidebarBackdrop.addEventListener("click", () => closeSidebar());
+      window.addEventListener("popstate", () => {
+        if (els.sidebar.classList.contains("open")) {
+          closeSidebar({ back: false });
+          switchView("dashboard");
+        }
+      });
+      document.getElementById("dashboardAddVehicle").addEventListener("click", () => openVehicleForm());
+      document.getElementById("dashboardAddService").addEventListener("click", () => openServiceForm());
+      document.body.addEventListener("input", event => {
+        const field = event.target;
+        if (!field.matches("input, textarea")) return;
+        if (["file", "date", "radio", "checkbox"].includes(field.type)) return;
+        if (field.inputMode === "numeric") return;
+        if (["serviceOilRealQuantity", "transmissionOilRealQuantity", "frontDiffOilRealQuantity", "rearDiffOilRealQuantity", "transferOilRealQuantity"].includes(field.id)) {
+          field.value = field.value.toUpperCase().replace(/[^0-9A-Z .,/]/g, "");
+          return;
+        }
+        const start = field.selectionStart;
+        const end = field.selectionEnd;
+        field.value = cleanName(field.value);
+        try { field.setSelectionRange(start, end); } catch {}
+      });
+      els.vehiclePlate.addEventListener("input", () => {
+        const raw = els.vehiclePlate.value;
+        els.vehiclePlate.value = cleanPlate(raw);
+        if (hasLowercase(raw)) {
+          setFieldState(els.vehiclePlate, els.vehiclePlateMsg, "No se pueden utilizar letras minúsculas en esta casilla. Se convirtió a mayúsculas.", true);
+        } else {
+          setFieldState(els.vehiclePlate, els.vehiclePlateMsg, "", false);
+        }
+      });
+      [els.vehicleYear, els.serviceMileage, els.serviceNext, els.transmissionMileage, els.transmissionIntervalCustom, els.transmissionNext, els.frontDiffMileage, els.frontDiffIntervalCustom, els.frontDiffNext, els.rearDiffMileage, els.rearDiffIntervalCustom, els.rearDiffNext, els.transferMileage, els.transferIntervalCustom, els.transferNext, els.otherServiceMileage, els.otherServiceNext, els.serviceReminderDays].forEach(input => {
+        if (!input) return;
+        input.addEventListener("input", () => {
+          input.value = digitsOnly(input.value);
+        });
+      });
+      els.serviceMileage.addEventListener("input", suggestedNextService);
+      document.querySelectorAll('input[name="serviceUnit"]').forEach(input => {
+        input.addEventListener("change", () => {
+          suggestedNextService();
+        });
+      });
+      document.querySelectorAll('input[name="transmissionUnit"], input[name="frontDiffUnit"], input[name="rearDiffUnit"], input[name="transferUnit"]').forEach(input => {
+        input.addEventListener("change", () => {
+          updateLongIntervalOptions();
+          calculateComponentNextServices(true);
+        });
+      });
+      [els.transmissionMileage, els.transmissionOil, els.transmissionIntervalCustom, els.frontDiffMileage, els.frontDiffOil, els.frontDiffIntervalCustom, els.rearDiffMileage, els.rearDiffOil, els.rearDiffIntervalCustom, els.transferMileage, els.transferOil, els.transferIntervalCustom].forEach(input => {
+        if (!input) return;
+        input.addEventListener("input", () => calculateComponentNextServices(false));
+      });
+      [els.transmissionInterval, els.frontDiffInterval, els.rearDiffInterval, els.transferInterval].forEach(select => {
+        if (!select) return;
+        select.addEventListener("change", () => {
+          updateIntervalCustomVisibility();
+          calculateComponentNextServices(true);
+        });
+      });
+      document.querySelectorAll("[data-service-section-toggle]").forEach(input => {
+        input.addEventListener("change", updateServiceSections);
+      });
+      document.getElementById("filterToggle")?.addEventListener("click", () => {
+        const toggle = document.getElementById("filterToggle");
+        const section = document.getElementById("filterSection");
+        const isOpen = section.classList.toggle("open");
+        toggle.classList.toggle("active", isOpen);
+      });
+      document.getElementById("otherServiceToggle")?.addEventListener("click", () => {
+        const toggle = document.getElementById("otherServiceToggle");
+        const section = document.getElementById("otherServiceSection");
+        const isOpen = section.classList.toggle("open");
+        toggle.classList.toggle("active", isOpen);
+      });
+      els.serviceReminder.addEventListener("change", updateReminderDaysVisibility);
+      document.querySelectorAll("[data-autofill-service]").forEach(button => {
+        button.addEventListener("click", () => autofillServiceSection(button.dataset.autofillService));
+      });
+      [els.vehicleBrand, els.vehicleModel].forEach(input => {
+        input.addEventListener("input", () => {
+          const raw = input.value;
+          input.value = cleanName(raw);
+          const msg = input === els.vehicleBrand ? els.vehicleBrandMsg : els.vehicleModelMsg;
+          if (hasLowercase(raw)) {
+            setFieldState(input, msg, "No se pueden utilizar letras minúsculas en esta casilla. Se convirtió a mayúsculas.", true);
+          } else {
+            setFieldState(input, msg, "", false);
+          }
+        });
+      });
+      [els.vehicleOwner, els.qrClientName].forEach(input => {
+        input.addEventListener("input", () => {
+          input.value = cleanName(input.value);
+        });
+      });
+      document.querySelectorAll("#serviceFilters input[type='radio']").forEach(input => {
+        input.addEventListener("change", updateFilterExtraVisibility);
+      });
+      els.vehicleSearch.addEventListener("input", renderVehicles);
+      els.vehicleFilter.addEventListener("change", renderVehicles);
+      els.qrSearch.addEventListener("input", () => {
+        renderSelects();
+        renderQr();
+      });
+      els.qrSearch.addEventListener("keydown", event => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        renderSelects();
+        selectFirstQrSearchResult();
+      });
+      els.qrVehicle.addEventListener("change", renderQr);
+      els.serviceSearch.addEventListener("input", renderServiceVehicleResults);
+      document.getElementById("saveVehicle").addEventListener("click", saveVehicle);
+      document.getElementById("saveService").addEventListener("click", saveService);
+      els.profileMenuToggle.addEventListener("click", event => {
+        event.stopPropagation();
+        els.profileMenu.classList.toggle("open");
+      });
+      els.qrMenuToggle.addEventListener("click", event => {
+        event.stopPropagation();
+        els.qrMenu.classList.toggle("open");
+      });
+      els.profileAddService.addEventListener("click", () => {
+        if (!activeProfileVehicleId) return;
+        els.profileMenu.classList.remove("open");
+        closeModal("profileModal");
+        openServiceForm(activeProfileVehicleId);
+      });
+      els.profileToggleLog.addEventListener("click", () => {
+        const isHidden = els.profileLogWrap.classList.toggle("hidden");
+        els.profileToggleLog.textContent = isHidden ? "Leer bitácora" : "Ocultar bitácora";
+      });
+      els.profileEditVehicle.addEventListener("click", () => {
+        if (!activeProfileVehicleId) return;
+        els.profileMenu.classList.remove("open");
+        closeModal("profileModal");
+        openVehicleForm(activeProfileVehicleId);
+      });
+      els.profileOpenQr.addEventListener("click", () => {
+        if (!activeProfileVehicleId) return;
+        els.profileMenu.classList.remove("open");
+        els.qrVehicle.value = activeProfileVehicleId;
+        closeModal("profileModal");
+        switchView("qr");
+      });
+      els.profileParts.addEventListener("click", () => {
+        if (!activeProfileVehicleId) return;
+        openPartsModal(activeProfileVehicleId);
+      });
+      els.profileReminderWhatsapp.addEventListener("click", () => {
+        const vehicle = findVehicle(activeProfileVehicleId);
+        if (!vehicle) return;
+        const latestService = vehicleServices(vehicle.id)[0];
+        const timeInfo = reminderInfo(latestService);
+        if (!vehicle.phone) {
+          alert("Este cliente no tiene número de WhatsApp registrado.");
+          return;
+        }
+        openWhatsapp(vehicle.phone, maintenanceReminderMessage(vehicle, timeInfo));
+      });
+      els.profileDeleteVehicle.addEventListener("click", () => {
+        if (!activeProfileVehicleId) return;
+        els.profileMenu.classList.remove("open");
+        deleteVehicle(activeProfileVehicleId);
+      });
+      els.shopLogo.addEventListener("change", event => {
+        fileToDataUrl(event.target.files[0], value => {
+          data.shop.logo = value;
+          els.shopLogoPreview.src = value;
+          saveData();
+          renderBrand();
+        });
+      });
+      document.getElementById("saveSettings").addEventListener("click", () => {
+        data.shop.name = cleanName(els.shopName.value).trim() || "TALLER QR";
+        data.shop.phone = els.shopPhone.value.trim();
+        data.shop.address = cleanName(els.shopAddress.value).trim();
+        saveData();
+        render();
+      });
+      document.getElementById("printTicket").addEventListener("click", () => {
+        els.qrMenu.classList.remove("open");
+        window.print();
+      });
+      document.getElementById("openClientView").addEventListener("click", () => {
+        els.qrMenu.classList.remove("open");
+        const vehicle = findVehicle(els.qrVehicle.value);
+        if (vehicle) openClient(vehicle);
+      });
+      document.getElementById("copyClientLink").addEventListener("click", async () => {
+        els.qrMenu.classList.remove("open");
+        const vehicle = findVehicle(els.qrVehicle.value);
+        if (!vehicle) return;
+        await copyText(publicUrl(vehicle));
+        document.getElementById("copyClientLink").textContent = "Copiado";
+        setTimeout(() => document.getElementById("copyClientLink").textContent = "Copiar link", 1200);
+      });
+      document.getElementById("sendClientLink").addEventListener("click", () => {
+        els.qrMenu.classList.remove("open");
+        const vehicle = findVehicle(els.qrVehicle.value);
+        if (!vehicle) return;
+        const phone = vehicle.phone || els.qrClientPhone.value;
+        if (!phone) {
+          alert("Este cliente no tiene número de WhatsApp registrado.");
+          els.qrClientPhone.focus();
+          return;
+        }
+        const message = `Hola${vehicle.owner ? ` ${vehicle.owner}` : ""}, le saluda Automotriz Medina. Le compartimos el enlace privado para consultar la bitácora de mantenimiento de su vehículo ${vehicle.brand} ${vehicle.model} placa ${vehicle.plate}: ${publicUrl(vehicle)}`;
+        openWhatsapp(phone, message);
+      });
+      document.getElementById("downloadQr").addEventListener("click", () => {
+        els.qrMenu.classList.remove("open");
+        const vehicle = findVehicle(els.qrVehicle.value);
+        if (!vehicle) return;
+        const link = document.createElement("a");
+        link.href = qrUrl(vehicle);
+        link.download = `qr-${vehicle.plate}.png`;
+        link.click();
+      });
+      document.getElementById("resetDemo").addEventListener("click", () => {
+        alert("Para realizar esta función, debes ser superusuario.");
+        const password = prompt("Ingresá la contraseña de superusuario:");
+        if (password !== "Elfinestacerca1.#") {
+          alert("Contraseña incorrecta. No se reiniciaron los datos.");
+          return;
+        }
+        if (!confirm("¿Estás completamente seguro de que deseas hacer el borrado?\n\nUna vez realizado este procedimiento, se perderán todos los registros creados hasta esta fecha.")) return;
+        localStorage.removeItem(STORAGE_KEY);
+        data = loadData();
+        render();
+        switchView("dashboard");
+      });
+      document.body.addEventListener("click", event => {
+        if (els.profileMenu?.classList.contains("open") && !event.target.closest("#profileMenu")) {
+          els.profileMenu.classList.remove("open");
+        }
+        if (els.qrMenu?.classList.contains("open") && !event.target.closest("#qrMenu")) {
+          els.qrMenu.classList.remove("open");
+        }
+        const button = event.target.closest("[data-action]");
+        if (!button) return;
+        event.preventDefault();
+        const action = button.dataset.action;
+        const id = button.dataset.id;
+        if (action === "edit") {
+          openVehicleForm(id);
+        } else if (action === "service") {
+          openServiceForm(id);
+        } else if (action === "select-service-vehicle") {
+          openMaintenanceForm(id);
+        } else if (action === "service-detail") {
+          openServiceDetail(id);
+        } else if (action === "public-service-detail") {
+          openPublicServiceDetail(id);
+        } else if (action === "edit-service") {
+          openServiceEdit(id);
+        } else if (action === "qr") {
+          els.qrVehicle.value = id;
+          switchView("qr");
+        } else if (action === "send-reminder") {
+          const vehicle = findVehicle(id);
+          const service = data.services.find(item => item.id === button.dataset.serviceId);
+          if (!vehicle || !service) return;
+          if (!vehicle.phone) {
+            alert("Este cliente no tiene número de WhatsApp registrado.");
+            return;
+          }
+          openWhatsapp(vehicle.phone, maintenanceReminderMessage(vehicle, reminderInfo(service), serviceCardSummary(service, vehicle)));
+        } else if (action === "dismiss-reminder") {
+          const service = data.services.find(item => item.id === button.dataset.serviceId);
+          if (!service) return;
+          if (!confirm("¿Eliminar este aviso del dashboard? La bitácora del mantenimiento se conservará.")) return;
+          service.reminderMonths = 0;
+          service.reminderDays = 0;
+          saveData();
+          render();
+        } else if (action === "profile") {
+          openProfile(id);
+        } else if (action === "delete") {
+          deleteVehicle(id);
+        } else if (action === "delete-service") {
+          deleteService(id);
+        }
+      });
+      document.body.addEventListener("keydown", event => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        const item = event.target.closest('[data-action="profile"]');
+        if (!item) return;
+        event.preventDefault();
+        openProfile(item.dataset.id);
+      });
+    }
+
+    query();
+    fillOilQuantitySelects();
+    installManifest();
+    wireEvents();
+
+    const publicToken = new URLSearchParams(location.search).get("vehiculo");
+    if (publicToken) {
+      render();
+      renderClient(findVehicleByToken(publicToken));
+    } else {
+      render();
+      switchView(activeView);
+    }
+  </script>
+</body>
+</html>
