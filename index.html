@@ -2442,9 +2442,21 @@
     async function saveCloudData() {
       if (!API_URL || !cloudSavePending) return;
       cloudSavePending = false;
+      const payload = { action: "save", data };
+      const payloadText = JSON.stringify(payload);
       try {
-        postCloudForm({ action: "save", data });
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon(API_URL, new Blob([payloadText], { type: "text/plain;charset=utf-8" }));
+        }
+        fetch(API_URL, {
+          method: "POST",
+          mode: "no-cors",
+          body: payloadText
+        }).catch(() => {});
+        postCloudForm(payload);
+        localStorage.setItem(`${STORAGE_KEY}.lastCloudSave`, new Date().toISOString());
       } catch (error) {
+        localStorage.setItem(`${STORAGE_KEY}.lastCloudError`, String(error?.message || error));
         cloudSavePending = true;
         clearTimeout(cloudSaveTimer);
         cloudSaveTimer = setTimeout(saveCloudData, 5000);
