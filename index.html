@@ -2392,6 +2392,10 @@
     let cloudSavePending = false;
     let cloudSyncInProgress = false;
     let cloudSyncTimer = null;
+    let cloudSaveInProgress = false;
+    let cloudReplaceNextSave = false;
+    const pendingDeletedVehicles = new Set();
+    const pendingDeletedServices = new Set();
 
     const fallbackPhoto = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760">
@@ -2527,6 +2531,41 @@
       queueCloudSave();
     }
 
+    function mergeCloudData(remoteValue, localValue) {
+      const remote = normalize(remoteValue || defaultData());
+      const local = normalize(localValue || defaultData());
+      if (cloudReplaceNextSave) return local;
+
+      const vehicles = new Map();
+      (remote.vehicles || []).forEach(vehicle => vehicles.set(vehicle.id, vehicle));
+      (local.vehicles || []).forEach(vehicle => vehicles.set(vehicle.id, vehicle));
+
+      const services = new Map();
+      (remote.services || []).forEach(service => services.set(service.id, service));
+      (local.services || []).forEach(service => services.set(service.id, service));
+      pendingDeletedVehicles.forEach(id => {
+        vehicles.delete(id);
+        Array.from(services.values()).forEach(service => {
+          if (service.vehicleId === id) services.delete(service.id);
+        });
+      });
+      pendingDeletedServices.forEach(id => services.delete(id));
+
+      const dismissedAlerts = Array.from(new Set([
+        ...(remote.dismissedAlerts || []),
+        ...(local.dismissedAlerts || [])
+      ]));
+
+      return normalize({
+        ...remote,
+        ...local,
+        shop: local.shop || remote.shop,
+        vehicles: Array.from(vehicles.values()),
+        services: Array.from(services.values()),
+        dismissedAlerts
+      });
+    }
+
     function hasBusinessData(value) {
       return Boolean((value?.vehicles || []).length || (value?.services || []).length || (value?.dismissedAlerts || []).length);
     }
@@ -2543,28 +2582,45 @@
     }
 
     async function saveCloudData() {
-      if (!API_URL || !cloudSavePending) return;
+      if (!API_URL || !cloudSavePending || cloudSaveInProgress) return;
+      cloudSaveInProgress = true;
       cloudSavePending = false;
-      const payload = { action: "save", data };
-      const payloadText = JSON.stringify(payload);
+      let payload = null;
+      let payloadText = "";
       try {
+        const remoteData = normalize(await loadCloudData());
+        data = mergeCloudData(remoteData, data);
+        payload = {
+          action: "save",
+          data,
+          replace: cloudReplaceNextSave,
+          deletedVehicleIds: Array.from(pendingDeletedVehicles),
+          deletedServiceIds: Array.from(pendingDeletedServices)
+        };
+        payloadText = JSON.stringify(payload);
         await saveCloudDataJsonp(payloadText);
-        postCloudForm(payload);
+        cloudReplaceNextSave = false;
+        pendingDeletedVehicles.clear();
+        pendingDeletedServices.clear();
         localStorage.setItem(`${STORAGE_KEY}.lastCloudSave`, new Date().toISOString());
       } catch (error) {
         localStorage.setItem(`${STORAGE_KEY}.lastCloudError`, String(error?.message || error));
-        if (navigator.sendBeacon) {
-          navigator.sendBeacon(API_URL, new Blob([payloadText], { type: "text/plain;charset=utf-8" }));
+        if (payload && payloadText) {
+          if (navigator.sendBeacon) {
+            navigator.sendBeacon(API_URL, new Blob([payloadText], { type: "text/plain;charset=utf-8" }));
+          }
+          fetch(API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: payloadText
+          }).catch(() => {});
+          postCloudForm(payload);
         }
-        fetch(API_URL, {
-          method: "POST",
-          mode: "no-cors",
-          body: payloadText
-        }).catch(() => {});
-        postCloudForm(payload);
         cloudSavePending = true;
         clearTimeout(cloudSaveTimer);
         cloudSaveTimer = setTimeout(saveCloudData, 5000);
+      } finally {
+        cloudSaveInProgress = false;
       }
     }
 
@@ -2668,7 +2724,7 @@
     }
 
     async function syncCloudData(options = {}) {
-      if (cloudSyncInProgress) return;
+      if (cloudSyncInProgress || cloudSavePending || cloudSaveInProgress || pendingDeletedVehicles.size || pendingDeletedServices.size) return;
       cloudSyncInProgress = true;
       try {
         const remoteData = normalize(await loadCloudData());
@@ -4208,6 +4264,8 @@
       if (!vehicle) return;
       const label = `${vehicle.brand} ${vehicle.model} · Placa ${vehicle.plate}`;
       if (!confirm(`¿Seguro que querés eliminar este cliente?\n\n${label}\n\nSe eliminará el vehículo y toda su bitácora de mantenimientos. Esta información no se puede recuperar.`)) return;
+      pendingDeletedVehicles.add(vehicleId);
+      data.services.filter(item => item.vehicleId === vehicleId).forEach(item => pendingDeletedServices.add(item.id));
       data.vehicles = data.vehicles.filter(item => item.id !== vehicleId);
       data.services = data.services.filter(item => item.vehicleId !== vehicleId);
       if (activeProfileVehicleId === vehicleId) activeProfileVehicleId = null;
@@ -4218,6 +4276,7 @@
 
     function deleteService(serviceId) {
       if (!confirm("Eliminar este servicio?")) return;
+      pendingDeletedServices.add(serviceId);
       data.services = data.services.filter(service => service.id !== serviceId);
       saveData();
       render();
@@ -4611,6 +4670,9 @@
         }
         if (!confirm("¿Estás completamente seguro de que deseas hacer el borrado?\n\nUna vez realizado este procedimiento, se perderán todos los registros creados hasta esta fecha.")) return;
         localStorage.removeItem(STORAGE_KEY);
+        pendingDeletedVehicles.clear();
+        pendingDeletedServices.clear();
+        cloudReplaceNextSave = true;
         data = normalize(defaultData());
         saveData();
         render();
