@@ -2493,10 +2493,7 @@
     }
 
     function loadData() {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) return normalize(JSON.parse(saved));
-      } catch {}
+      localStorage.removeItem(STORAGE_KEY);
       return normalize(defaultData());
     }
 
@@ -2526,7 +2523,7 @@
     }
 
     function saveData() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.removeItem(STORAGE_KEY);
       queueCloudSave();
     }
 
@@ -2535,7 +2532,7 @@
     }
 
     function saveLocalOnly() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.removeItem(STORAGE_KEY);
     }
 
     function queueCloudSave(immediate = false) {
@@ -2674,16 +2671,18 @@
       if (cloudSyncInProgress) return;
       cloudSyncInProgress = true;
       try {
-        const localHasData = hasBusinessData(data);
         const remoteData = normalize(await loadCloudData());
         const remoteHasData = hasBusinessData(remoteData);
-        if (remoteHasData || !localHasData) {
+        if (remoteHasData) {
           data = remoteData;
           saveLocalOnly();
           renderCurrentMode();
           return;
         }
-        if (options.pushIfEmpty !== false) queueCloudSave(true);
+        if (!hasBusinessData(data)) {
+          data = remoteData;
+          renderCurrentMode();
+        }
       } catch (error) {
         console.warn("Sincronización pendiente:", error.message || error);
       } finally {
@@ -4612,7 +4611,8 @@
         }
         if (!confirm("¿Estás completamente seguro de que deseas hacer el borrado?\n\nUna vez realizado este procedimiento, se perderán todos los registros creados hasta esta fecha.")) return;
         localStorage.removeItem(STORAGE_KEY);
-        data = loadData();
+        data = normalize(defaultData());
+        saveData();
         render();
         switchView("dashboard");
       });
